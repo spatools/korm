@@ -1,0 +1,43 @@
+{
+  "name": "korm",
+  "version": "0.1.0",
+  "authors": [
+    "SPA Tools"
+  ],
+  "description": "Knockout ORM framework with REST service adapter and offline storage",
+  "main": "dist/korm.js",
+  "keywords": [
+    "knockout",
+    "knockoutjs",
+    "ko",
+    "orm",
+    "data",
+    "rest",
+    "odata",
+    "javascript",
+    "spatools",
+    "amd"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/spatools/korm",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "typings",
+    "nuget",
+    "test"
+  ],
+  "dependencies": {
+    "koutils": ">=0.1.0",
+    "promise-ext": ">=0.3.0",
+    "jquery": "~2.1.0",
+    "knockout.mapping": "SteveSanderson/knockout.mapping",
+    "moment": "~2.5.1"
+  },
+  "devDependencies": {
+    "mocha": "~1.17.1",
+    "should": "3.1.2",
+    "sinon": "http://sinonjs.org/releases/sinon-1.8.1.js"
+  }
+}

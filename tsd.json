@@ -1,0 +1,36 @@
+{
+  "version": "v4",
+  "repo": "borisyankov/DefinitelyTyped",
+  "ref": "master",
+  "path": "typings",
+  "bundle": "typings/tsd.d.ts",
+  "installed": {
+    "requirejs/require.d.ts": {
+      "commit": "633ad6b02c9d7463477af7b0b74c784b97ad6e76"
+    },
+    "should/should.d.ts": {
+      "commit": "633ad6b02c9d7463477af7b0b74c784b97ad6e76"
+    },
+    "mocha/mocha.d.ts": {
+      "commit": "633ad6b02c9d7463477af7b0b74c784b97ad6e76"
+    },
+    "sinon/sinon.d.ts": {
+      "commit": "633ad6b02c9d7463477af7b0b74c784b97ad6e76"
+    },
+    "knockout/knockout.d.ts": {
+      "commit": "633ad6b02c9d7463477af7b0b74c784b97ad6e76"
+    },
+    "underscore/underscore.d.ts": {
+      "commit": "633ad6b02c9d7463477af7b0b74c784b97ad6e76"
+    },
+    "jquery/jquery.d.ts": {
+      "commit": "2f2853bcc98696ec5a33567c19a3aac8c77d4939"
+    },
+    "knockout.mapping/knockout.mapping.d.ts": {
+      "commit": "2f2853bcc98696ec5a33567c19a3aac8c77d4939"
+    },
+    "moment/moment.d.ts": {
+      "commit": "2f2853bcc98696ec5a33567c19a3aac8c77d4939"
+    }
+  }
+}
