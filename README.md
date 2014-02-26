@@ -56,4 +56,4 @@ Include built script in your HTML file.
 
 ## Documentation
 
-For now documentation can be found in code.
+Documentation is hosted on [Github Wiki](https://github.com/spatools/korm/wiki).
