@@ -50,17 +50,17 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     exports.Relation = Relation;
 
     var Configuration = (function () {
-        function Configuration(type, object, relations, rules, actions, baseType) {
+        function Configuration(type, model, relations, rules, actions, baseType) {
             if (_.isString(type)) {
                 this.type = type;
-                this.object = object;
+                this.model = model;
                 this.relations = relations || [];
                 this.rules = rules || {};
                 this.actions = actions || [];
                 this.baseType = baseType;
             } else {
                 this.type = type.type;
-                this.object = type.object;
+                this.model = type.object;
                 this.relations = type.relations || [];
                 this.rules = type.rules || {};
                 this.actions = type.actions || [];
@@ -453,7 +453,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     exports.mapEntitiesFromJS = mapEntitiesFromJS;
 
     function mapEntityFromJS(data, initialState, expand, store, dataSet) {
-        var config = exports.getMappingConfiguration(data, dataSet), model = config.object ? constructEntity(config.object) : {};
+        var config = exports.getMappingConfiguration(data, dataSet), model = config.model ? constructEntity(config.model) : {};
 
         if (!_.isUndefined(data.EntityState) && initialState === 0 /* unchanged */) {
             initialState = data.EntityState;
