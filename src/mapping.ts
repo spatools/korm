@@ -168,8 +168,9 @@ function constructEntity(type: any) {
     }
 }
 function getEntityType(entity: any) {
-    if (!entity)
+    if (!entity) {
         return;
+    }
 
     var i = 0,
         len = typeProperties.length,
@@ -187,8 +188,9 @@ function ensureConfiguration(configs: Configurations, config: Configuration): Co
     if (config.baseType) {
         var baseConfig = configs.getConfiguration(config.baseType);
 
-        if (!baseConfig)
+        if (!baseConfig) {
             throw new Error("No configuration registered for type: " + config.baseType);
+        }
 
         if (baseConfig.relations.length > 0) {
             if (config.relations.length > 0)
