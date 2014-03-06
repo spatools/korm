@@ -208,16 +208,16 @@ function ensureConfiguration(configs: Configurations, config: Configuration): Co
 
         if (baseConfig.rules.ignore) {
             if (config.rules.ignore)
-                config.rules.ignore = _.union(config.rules.ignore, config.rules.ignore);
+                config.rules.ignore = _.union(config.rules.ignore, baseConfig.rules.ignore);
             else
-                config.rules.ignore = config.rules.ignore;
+                config.rules.ignore = baseConfig.rules.ignore;
         }
 
         if (baseConfig.rules.copy) {
             if (config.rules.copy)
-                config.rules.copy = _.union(config.rules.copy, config.rules.copy);
+                config.rules.copy = _.union(config.rules.copy, baseConfig.rules.copy);
             else
-                config.rules.copy = config.rules.copy;
+                config.rules.copy = baseConfig.rules.copy;
         }
     }
 
