@@ -27,9 +27,16 @@ export enum entityStates {
     removed
 }
 
+/** Default types properties (internal usage) */
+export var typeProperties: string[] = [
+    "odata.type",
+    "$type",
+    "_type"
+];
+
 /** Default mapping rules (internal usage) */
 export var defaultRules: KnockoutMappingOptions = {
-    copy: ["$type", "odata.type"],
+    copy: [],
     ignore: ["_lastData", "EntityState", "IsSubmitting", "HasChanges", "ChangeTracker", "IsRemoved", "isValid", "errors", "hasChanges", "subscription", "__ko_mapping__"]
 };
 
@@ -65,16 +72,46 @@ export class Relation {
     }
 }
 
+export interface ConfigurationOptions {
+    type: string;
+    baseType?: string;
+    object?: any;
+    rules?: KnockoutMappingOptions;
+    relations?: Relation[];
+    actions?: string[];
+}
+
 /** Class representing a mapping configuration for serialization / deserialization scenarios */
 export class Configuration {
     public _rules: KnockoutMappingOptions;
 
-    constructor(
-        public type: string,
-        public object: any = null,
-        public relations: Relation[]= [],
-        public rules: KnockoutMappingOptions = {},
-        public actions: string[] = []) {
+    public type: string;
+    public baseType: string;
+    public object: any;
+    public rules: KnockoutMappingOptions;
+    public relations: Relation[];
+    public actions: string[];
+
+    constructor(options: ConfigurationOptions);
+    constructor(type: string);
+    constructor(type: string, object: any, relations?: Relation[], rules?: KnockoutMappingOptions, actions?: string[], baseType?: string);
+    constructor(type: any, object?: any, relations?: Relation[], rules?: KnockoutMappingOptions, actions?: string[], baseType?: string) {
+        if (_.isString(type)) {
+            this.type = type;
+            this.object = object;
+            this.relations = relations || [];
+            this.rules = rules || {};
+            this.actions = actions || [];
+            this.baseType = baseType;
+        }
+        else {
+            this.type = type.type;
+            this.object = type.object;
+            this.relations = type.relations || [];
+            this.rules = type.rules || {};
+            this.actions = type.actions || [];
+            this.baseType = type.baseType;
+        }
     }
 }
 
@@ -89,7 +126,7 @@ export class Configurations {
 
     /** Add a mapping configuration */
     addConfiguration(configuration: Configuration): Configurations {
-        this.configurations[configuration.type] = configuration;
+        this.configurations[configuration.type] = ensureConfiguration(this, configuration);
         return this;
     }
     /** Add an array of mapping configurations */
@@ -131,16 +168,66 @@ function constructEntity(type: any) {
     }
 }
 function getEntityType(entity: any) {
-    return entity && (entity.$type || entity["odata.type"]);
+    if (!entity)
+        return;
+
+    var i = 0,
+        len = typeProperties.length,
+        typeProp;
+
+    for (; i < len; i++) {
+        typeProp = typeProperties[i];
+
+        if (typeProp in entity)
+            return entity[typeProp];
+    }
 }
 
+function ensureConfiguration(configs: Configurations, config: Configuration): Configuration {
+    if (config.baseType) {
+        var baseConfig = configs.getConfiguration(config.baseType);
+
+        if (!baseConfig)
+            throw new Error("No configuration registered for type: " + config.baseType);
+
+        if (baseConfig.relations.length > 0) {
+            if (config.relations.length > 0)
+                config.relations = _.union(config.relations, baseConfig.relations);
+            else
+                config.relations = baseConfig.relations;
+        }
+        
+        if (baseConfig.actions.length > 0) {
+            if (config.actions.length > 0)
+                config.actions = _.union(config.actions, baseConfig.actions);
+            else
+                config.actions = baseConfig.actions;
+        }
+
+        if (baseConfig.rules.ignore) {
+            if (config.rules.ignore)
+                config.rules.ignore = _.union(config.rules.ignore, config.rules.ignore);
+            else
+                config.rules.ignore = config.rules.ignore;
+        }
+
+        if (baseConfig.rules.copy) {
+            if (config.rules.copy)
+                config.rules.copy = _.union(config.rules.copy, config.rules.copy);
+            else
+                config.rules.copy = config.rules.copy;
+        }
+    }
+
+    return config;
+}
 function ensureRules(config: Configuration, entity?: any, keepState?: boolean): KnockoutMappingOptions {
     var result = _.clone(config._rules);
     if (!result) {
         result = _.clone(config.rules);
         var relations = _.map(config.relations, r => r.propertyName);
 
-        result.copy = _.union<string>(config.rules.copy || [], defaultRules.copy);
+        result.copy = _.union<string>(config.rules.copy || [], defaultRules.copy, typeProperties);
         result.ignore = _.union<string>(config.rules.ignore || [], relations, config.actions, defaultRules.ignore);
 
         config._rules = result;
