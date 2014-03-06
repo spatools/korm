@@ -75,7 +75,7 @@ export class Relation {
 export interface ConfigurationOptions {
     type: string;
     baseType?: string;
-    object?: any;
+    model?: any;
     rules?: KnockoutMappingOptions;
     relations?: Relation[];
     actions?: string[];
@@ -87,7 +87,7 @@ export class Configuration {
 
     public type: string;
     public baseType: string;
-    public object: any;
+    public model: any;
     public rules: KnockoutMappingOptions;
     public relations: Relation[];
     public actions: string[];
@@ -95,10 +95,10 @@ export class Configuration {
     constructor(options: ConfigurationOptions);
     constructor(type: string);
     constructor(type: string, object: any, relations?: Relation[], rules?: KnockoutMappingOptions, actions?: string[], baseType?: string);
-    constructor(type: any, object?: any, relations?: Relation[], rules?: KnockoutMappingOptions, actions?: string[], baseType?: string) {
+    constructor(type: any, model?: any, relations?: Relation[], rules?: KnockoutMappingOptions, actions?: string[], baseType?: string) {
         if (_.isString(type)) {
             this.type = type;
-            this.object = object;
+            this.model = model;
             this.relations = relations || [];
             this.rules = rules || {};
             this.actions = actions || [];
@@ -106,7 +106,7 @@ export class Configuration {
         }
         else {
             this.type = type.type;
-            this.object = type.object;
+            this.model = type.object;
             this.relations = type.relations || [];
             this.rules = type.rules || {};
             this.actions = type.actions || [];
@@ -506,7 +506,7 @@ export function mapEntitiesFromJS<T, TKey>(datas: any[], initialState: entitySta
 
 export function mapEntityFromJS<T, TKey>(data: any, initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T> {
     var config = getMappingConfiguration(data, dataSet),
-        model = config.object ? constructEntity(config.object) : {};
+        model = config.model ? constructEntity(config.model) : {};
 
     if (!_.isUndefined(data.EntityState) && initialState === entityStates.unchanged) {
         initialState = data.EntityState;
