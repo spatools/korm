@@ -60,7 +60,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
                 this.baseType = baseType;
             } else {
                 this.type = type.type;
-                this.model = type.object;
+                this.model = type.model;
                 this.relations = type.relations || [];
                 this.rules = type.rules || {};
                 this.actions = type.actions || [];
@@ -429,7 +429,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
 
         var config, model, result = _.map(datas, function (data) {
             config = exports.getMappingConfiguration(data, dataSet);
-            model = config.object ? constructEntity(config.object) : {};
+            model = config.model ? constructEntity(config.model) : {};
 
             if (!_.isUndefined(data.EntityState) && initialState === 0 /* unchanged */) {
                 initialState = data.EntityState;

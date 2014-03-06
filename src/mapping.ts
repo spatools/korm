@@ -106,7 +106,7 @@ export class Configuration {
         }
         else {
             this.type = type.type;
-            this.model = type.object;
+            this.model = type.model;
             this.relations = type.relations || [];
             this.rules = type.rules || {};
             this.actions = type.actions || [];
@@ -484,7 +484,7 @@ export function mapEntitiesFromJS<T, TKey>(datas: any[], initialState: entitySta
     var config, model,
         result = _.map(datas, data => {
             config = getMappingConfiguration(data, dataSet);
-            model = config.object ? constructEntity(config.object) : {};
+            model = config.model ? constructEntity(config.model) : {};
 
             if (!_.isUndefined(data.EntityState) && initialState === entityStates.unchanged) {
                 initialState = data.EntityState;
