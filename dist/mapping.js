@@ -14,8 +14,14 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     })(exports.entityStates || (exports.entityStates = {}));
     var entityStates = exports.entityStates;
 
+    exports.typeProperties = [
+        "odata.type",
+        "$type",
+        "_type"
+    ];
+
     exports.defaultRules = {
-        copy: ["$type", "odata.type"],
+        copy: [],
         ignore: ["_lastData", "EntityState", "IsSubmitting", "HasChanges", "ChangeTracker", "IsRemoved", "isValid", "errors", "hasChanges", "subscription", "__ko_mapping__"]
     };
 
@@ -44,16 +50,22 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     exports.Relation = Relation;
 
     var Configuration = (function () {
-        function Configuration(type, object, relations, rules, actions) {
-            if (typeof object === "undefined") { object = null; }
-            if (typeof relations === "undefined") { relations = []; }
-            if (typeof rules === "undefined") { rules = {}; }
-            if (typeof actions === "undefined") { actions = []; }
-            this.type = type;
-            this.object = object;
-            this.relations = relations;
-            this.rules = rules;
-            this.actions = actions;
+        function Configuration(type, object, relations, rules, actions, baseType) {
+            if (_.isString(type)) {
+                this.type = type;
+                this.object = object;
+                this.relations = relations || [];
+                this.rules = rules || {};
+                this.actions = actions || [];
+                this.baseType = baseType;
+            } else {
+                this.type = type.type;
+                this.object = type.object;
+                this.relations = type.relations || [];
+                this.rules = type.rules || {};
+                this.actions = type.actions || [];
+                this.baseType = type.baseType;
+            }
         }
         return Configuration;
     })();
@@ -68,7 +80,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         };
 
         Configurations.prototype.addConfiguration = function (configuration) {
-            this.configurations[configuration.type] = configuration;
+            this.configurations[configuration.type] = ensureConfiguration(this, configuration);
             return this;
         };
 
@@ -105,9 +117,59 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         }
     }
     function getEntityType(entity) {
-        return entity && (entity.$type || entity["odata.type"]);
+        if (!entity) {
+            return;
+        }
+
+        var i = 0, len = exports.typeProperties.length, typeProp;
+
+        for (; i < len; i++) {
+            typeProp = exports.typeProperties[i];
+
+            if (typeProp in entity)
+                return entity[typeProp];
+        }
     }
 
+    function ensureConfiguration(configs, config) {
+        if (config.baseType) {
+            var baseConfig = configs.getConfiguration(config.baseType);
+
+            if (!baseConfig) {
+                throw new Error("No configuration registered for type: " + config.baseType);
+            }
+
+            if (baseConfig.relations.length > 0) {
+                if (config.relations.length > 0)
+                    config.relations = _.union(config.relations, baseConfig.relations);
+                else
+                    config.relations = baseConfig.relations;
+            }
+
+            if (baseConfig.actions.length > 0) {
+                if (config.actions.length > 0)
+                    config.actions = _.union(config.actions, baseConfig.actions);
+                else
+                    config.actions = baseConfig.actions;
+            }
+
+            if (baseConfig.rules.ignore) {
+                if (config.rules.ignore)
+                    config.rules.ignore = _.union(config.rules.ignore, config.rules.ignore);
+                else
+                    config.rules.ignore = config.rules.ignore;
+            }
+
+            if (baseConfig.rules.copy) {
+                if (config.rules.copy)
+                    config.rules.copy = _.union(config.rules.copy, config.rules.copy);
+                else
+                    config.rules.copy = config.rules.copy;
+            }
+        }
+
+        return config;
+    }
     function ensureRules(config, entity, keepState) {
         var result = _.clone(config._rules);
         if (!result) {
@@ -116,7 +178,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
                 return r.propertyName;
             });
 
-            result.copy = _.union(config.rules.copy || [], exports.defaultRules.copy);
+            result.copy = _.union(config.rules.copy || [], exports.defaultRules.copy, exports.typeProperties);
             result.ignore = _.union(config.rules.ignore || [], relations, config.actions, exports.defaultRules.ignore);
 
             config._rules = result;
