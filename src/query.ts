@@ -439,14 +439,6 @@ export class ODataQuery {
             pageNum = this.pageNum(), pageSize = this.pageSize(),
             selects = this.selects(), expands = this.expands();
 
-        if ((pageNum !== 0 || pageSize !== 0) && this.ordersby.size() === 0) {
-            throw "You must specify atleast 1 order function when using paging";
-        }
-
-        if (pageNum !== 0 && pageSize === 0) {
-            throw "You cannot specify a page number without a page size";
-        }
-
         _.each(this.filters(), function (filter) {
             if (_.isObject(filter)) {
                 var query = filter.toQueryString();
@@ -478,14 +470,11 @@ export class ODataQuery {
         if (expands.length)
             qstring.push("$expand=" + expands.join(","));
 
-        if (pageNum) {
+        if (pageNum)
             qstring.push("$skip=" + (pageSize * (pageNum - 1)));
-            showTotal = true;
-        }
-        if (pageSize) {
+
+        if (pageSize)
             qstring.push("$top=" + pageSize);
-            showTotal = true;
-        }
 
         orders = this.ordersby.map(order => order.toQueryString());
 
