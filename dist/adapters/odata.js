@@ -87,7 +87,7 @@
             };
 
             if (data)
-                options.data = data;
+                options.data = JSON.stringify(data);
 
             return Promise.cast($.ajax(options));
         };

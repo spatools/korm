@@ -202,7 +202,7 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
                 throw new Error("This adapter does not support custom actions");
             }
 
-            var id = entity ? this.getKey(entity) : null, data = ko.toJSON(params);
+            var id = entity ? this.getKey(entity) : null, data = ko.toJS(params);
 
             return this.adapter.action(this.setName, action, data, id);
         },
@@ -217,7 +217,9 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
                 mapping.addMappingProperties(entity, this);
 
             entity.EntityState(1 /* added */);
-            entity[this.key](guid.generateTemp());
+
+            if (!this.getKey(entity))
+                entity[this.key](guid.generateTemp());
 
             return this.attach(entity);
         },
@@ -228,7 +230,9 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
                     mapping.addMappingProperties(entity, _this);
 
                 entity.EntityState(1 /* added */);
-                entity[_this.key](guid.generateTemp());
+
+                if (!_this.getKey(entity))
+                    entity[_this.key](guid.generateTemp());
             });
 
             return this.attachRange(entities);
@@ -474,7 +478,7 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
                 if (entity.IsSubmitting() === false) {
                     entity.IsSubmitting(true);
 
-                    return self.adapter.post(self.setName, self.toJSON(entity)).then(function (data) {
+                    return self.adapter.post(self.setName, self.toJS(entity)).then(function (data) {
                         return mapping.updateEntity(entity, data, false, false, true, self);
                     }).then(function () {
                         var key = self.getKey(entity), table;
@@ -510,7 +514,7 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             if (entity.IsSubmitting() === false) {
                 entity.IsSubmitting(true);
 
-                return self.adapter.put(self.setName, key, self.toJSON(entity)).then(function (data) {
+                return self.adapter.put(self.setName, key, self.toJS(entity)).then(function (data) {
                     return mapping.updateEntity(entity, data, false, false, true, self);
                 }).then(function () {
                     return self.store(entity);

@@ -1,4 +1,4 @@
-define(["require", "exports", "koutils/utils"], function(require, exports, utils) {
+define(["require", "exports", "underscore", "koutils/utils", "koutils/underscore"], function(require, exports, _, utils) {
     var lastEmpty = 0, tempRegex = /00000000-0000-0000-0000-\d{12}/, guidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
     exports.empty = "00000000-0000-0000-0000-000000000000";
@@ -17,13 +17,21 @@ define(["require", "exports", "koutils/utils"], function(require, exports, utils
     }
     exports.generateTemp = generateTemp;
 
-    function isTemp(guid) {
-        return tempRegex.test(guid);
+    function generateMin() {
+        var guid = exports.generate().split("-");
+        return _.sum(guid, function (part) {
+            return parseInt(part, 16);
+        }).toString(16);
     }
-    exports.isTemp = isTemp;
+    exports.generateMin = generateMin;
 
     function isGuid(guid) {
         return guidRegex.test(guid);
     }
     exports.isGuid = isGuid;
+
+    function isTemp(guid) {
+        return tempRegex.test(guid);
+    }
+    exports.isTemp = isTemp;
 });
