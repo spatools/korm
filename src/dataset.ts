@@ -401,7 +401,9 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
             mapping.addMappingProperties(entity, this);
 
         entity.EntityState(mapping.entityStates.added);
-        entity[this.key](guid.generateTemp());
+
+        if (!this.getKey(entity))
+            entity[this.key](guid.generateTemp());
 
         return this.attach(entity);
     },
@@ -412,7 +414,9 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
                 mapping.addMappingProperties(entity, this);
 
             entity.EntityState(mapping.entityStates.added);
-            entity[this.key](guid.generateTemp());
+
+            if (!this.getKey(entity))
+                entity[this.key](guid.generateTemp());
         });
 
         return this.attachRange(entities);
