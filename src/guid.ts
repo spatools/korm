@@ -1,5 +1,7 @@
 /// <reference path="../_definitions.d.ts" />
+/// <amd-dependency path="koutils/underscore" />
 
+import _ = require("underscore");
 import utils = require("koutils/utils");
 
 var lastEmpty = 0,
@@ -20,10 +22,15 @@ export function generateTemp(): string {
     return "00000000-0000-0000-0000-" + utils.str_pad((lastEmpty++).toString(), 12, "0");
 }
 
-export function isTemp(guid: string): boolean {
-    return tempRegex.test(guid);
+export function generateMin(): string {
+    var guid = generate().split('-');
+    return _.sum(guid, part => parseInt(part, 16)).toString(16);
 }
 
 export function isGuid(guid: string): boolean {
     return guidRegex.test(guid);
+}
+
+export function isTemp(guid: string): boolean {
+    return tempRegex.test(guid);
 }
