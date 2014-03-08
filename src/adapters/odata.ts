@@ -94,7 +94,7 @@ class ODataAdapter implements adapters.IAdapter {
         };
 
         if (data)
-            options.data = data;
+            options.data = JSON.stringify(data);
 
         return Promise.cast<any>($.ajax(options));
     }

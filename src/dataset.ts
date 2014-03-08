@@ -381,7 +381,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         }
 
         var id = entity ? this.getKey(entity) : null,
-            data = ko.toJSON(params);
+            data = ko.toJS(params);
 
         return this.adapter.action(this.setName, action, data, id);
     },
@@ -686,7 +686,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
             if (entity.IsSubmitting() === false) {
                 entity.IsSubmitting(true);
 
-                return self.adapter.post(self.setName, self.toJSON(entity))
+                return self.adapter.post(self.setName, self.toJS(entity))
                     .then(data => mapping.updateEntity(entity, data, false, false, true, self))
                     .then(() => {
                         var key = self.getKey(entity), table;
@@ -722,7 +722,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         if (entity.IsSubmitting() === false) {
             entity.IsSubmitting(true);
 
-            return self.adapter.put(self.setName, key, self.toJSON(entity))
+            return self.adapter.put(self.setName, key, self.toJS(entity))
                 .then(data => mapping.updateEntity(entity, data, false, false, true, self))
                 .then(() => self.store(entity))
                 .then(canceller, canceller);
