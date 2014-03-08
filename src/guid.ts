@@ -23,7 +23,7 @@ export function generateTemp(): string {
 }
 
 export function generateMin(): string {
-    var guid = generate().split('-');
+    var guid = generate().split("-");
     return _.sum(guid, part => parseInt(part, 16)).toString(16);
 }
 
