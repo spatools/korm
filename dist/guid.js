@@ -18,10 +18,7 @@ define(["require", "exports", "underscore", "koutils/utils", "koutils/underscore
     exports.generateTemp = generateTemp;
 
     function generateMin() {
-        var guid = exports.generate().split("-");
-        return _.sum(guid, function (part) {
-            return parseInt(part, 16);
-        }).toString(16);
+        return Math.floor(Math.random() * 3656158440062975).toString(36);
     }
     exports.generateMin = generateMin;
 
