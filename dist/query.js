@@ -253,6 +253,13 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
                 var itemField1 = ko.unwrap(item1[field]);
                 var itemField2 = ko.unwrap(item2[field]);
 
+                if (_.isString(itemField1)) {
+                    itemField1 = itemField1.toLowerCase();
+                }
+                if (_.isString(itemField2)) {
+                    itemField2 = itemField2.toLowerCase();
+                }
+
                 if (itemField1 > itemField2) {
                     return 1 * (asc ? 1 : -1);
                 }
