@@ -132,6 +132,10 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     }
 
     function ensureConfiguration(configs, config) {
+        if (!(config instanceof Configuration)) {
+            config = new Configuration(config);
+        }
+
         if (config.baseType) {
             var baseConfig = configs.getConfiguration(config.baseType);
 
