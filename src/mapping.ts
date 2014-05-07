@@ -185,6 +185,10 @@ function getEntityType(entity: any) {
 }
 
 function ensureConfiguration(configs: Configurations, config: Configuration): Configuration {
+    if (!(config instanceof Configuration)) {
+        config = new Configuration(config);
+    }
+
     if (config.baseType) {
         var baseConfig = configs.getConfiguration(config.baseType);
 
