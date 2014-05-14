@@ -1,4 +1,4 @@
-define(["require", "exports", "underscore", "koutils/utils", "koutils/underscore"], function(require, exports, _, utils) {
+define(["require", "exports", "koutils/utils", "koutils/underscore"], function(require, exports, utils) {
     var lastEmpty = 0, tempRegex = /00000000-0000-0000-0000-\d{12}/, guidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
     exports.empty = "00000000-0000-0000-0000-000000000000";

@@ -38,11 +38,11 @@
             return key;
         };
         ODataAdapter.prototype.generateUrl = function (url) {
+            var _this = this;
             var args = [];
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 args[_i] = arguments[_i + 1];
             }
-            var _this = this;
             var regex = /\{([^}]*)\}/, matchFunction = function (match) {
                 if (match.indexOf("key") !== -1) {
                     return _this.generateKey(args.shift());

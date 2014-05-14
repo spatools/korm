@@ -229,7 +229,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
                         });
 
                         if (filter) {
-                            cursor = store.index(filter.field()).openCursor(new IDBKeyRange().only(filter.value()));
+                            cursor = store.index(filter.field()).openCursor(new win.IDBKeyRange().only(filter.value()));
                         }
                     }
 

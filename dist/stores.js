@@ -1,4 +1,4 @@
-define(["require", "exports", "knockout", "underscore", "promise/extensions", "./stores/memory"], function(require, exports, ko, _, promiseExt, MemoryStore) {
+define(["require", "exports", "promise/extensions", "./stores/memory"], function(require, exports, promiseExt, MemoryStore) {
     var stores = {
         "memory": MemoryStore
     };

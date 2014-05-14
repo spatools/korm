@@ -25,21 +25,6 @@ define(["require", "exports", "knockout", "underscore", "./query"], function(req
         };
 
         var result = foreignSet.createView(relation.toQuery(parent, localSet, foreignSet));
-
-        var localIdValue = ko.unwrap(parent[localSet.key]);
-        self.parent[self.localId].subscribe(function (newId) {
-            if (localIdValue !== newId) {
-                var foreigns = foreignSet.filter(function (e) {
-                    return e[self.foreignId]() === localIdValue;
-                });
-                _.each(foreigns, function (foreign) {
-                    return foreign[self.foreignId](newId);
-                });
-
-                localIdValue = newId;
-            }
-        });
-
         _.extend(result, self, collectionViewFunctions);
 
         return result;
@@ -80,27 +65,7 @@ define(["require", "exports", "knockout", "underscore", "./query"], function(req
             ensureRemote: relation.ensureRemote
         };
 
-        var result = self.view._first(), foreignEntity = result(), subscription = null;
-
-        result.subscribe(function (newForeign) {
-            setTimeout(function () {
-                if (foreignEntity !== newForeign) {
-                    if (subscription) {
-                        subscription.dispose();
-                        subscription = null;
-                    }
-
-                    if (newForeign) {
-                        subscription = newForeign[self.foreignId].subscribe(function (newId) {
-                            self.parent[self.localId](newId);
-                        });
-                    }
-
-                    foreignEntity = newForeign;
-                }
-            }, 1);
-        });
-
+        var result = self.view._first();
         _.extend(result, self, foreignViewFunctions);
 
         return result;
