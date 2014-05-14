@@ -4,7 +4,6 @@
   "description": "Knockout ORM framework with REST service adapter and offline storage",
   "main": "dist/korm.js",
   "scripts": {
-	"install": "bower install && tsd reinstall",
     "test": "grunt test"
   },
   "repository": {
