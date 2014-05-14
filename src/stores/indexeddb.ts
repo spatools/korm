@@ -164,7 +164,7 @@ class IndexedDBStore implements stores.IDataStore {
         if (dbVersion > this.version)
             this.version = dbVersion;
 
-        return _.all(this.context.getSets(), function (set) {
+        return _.all(this.context.getSets(), function (set: dataset.DataSet<any, string>) {
             return this.db.objectStoreNames.contains(this.prefix + set.setName);
         }, this);
     }
@@ -243,7 +243,7 @@ class IndexedDBStore implements stores.IDataStore {
                         filter: any = query.filters.find((f: any) => !_.isString(f) && _.contains(ids, f.field()) && f.operator() === _query.operator.equal);
 
                     if (filter) {
-                        cursor = store.index(filter.field()).openCursor(new IDBKeyRange().only(filter.value()));
+                        cursor = store.index(filter.field()).openCursor(new win.IDBKeyRange().only(filter.value()));
                     }
                 }
 
