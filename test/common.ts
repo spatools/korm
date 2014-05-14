@@ -268,7 +268,7 @@ export class FakeDataAdapter implements adapters.IAdapter {
         return this.getOne(controller, id).then(entity => {
             var dataset = this.context.getSet(controller),
                 conf = mapping.getMappingConfiguration(entity, dataset),
-                relation = _.find(conf.relations, r => r.propertyName === relationName);
+                relation = _.find<mapping.Relation>(conf.relations, r => r.propertyName === relationName);
 
             if (relation) {
                 var q = relation.toQuery(entity, dataset, this.context.getSet(relation.controllerName));
