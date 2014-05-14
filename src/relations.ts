@@ -55,17 +55,6 @@ export function collection<T, TKey, TForeign, TForeignKey>(localSet: dataset.Dat
     };
 
     var result: any = foreignSet.createView(relation.toQuery(parent, localSet, foreignSet));
-
-    var localIdValue = ko.unwrap(parent[localSet.key]);
-    self.parent[self.localId].subscribe(newId => {
-        if (localIdValue !== newId) {
-            var foreigns = foreignSet.filter(e => e[self.foreignId]() === localIdValue);
-            _.each(foreigns, foreign => foreign[self.foreignId](newId));
-
-            localIdValue = newId;
-        }
-    });
-
     _.extend(result, self, collectionViewFunctions);
 
     return result;
@@ -143,29 +132,7 @@ export function foreign<T, TKey, TForeign, TForeignKey>(localSet: dataset.DataSe
         ensureRemote: relation.ensureRemote
     };
 
-    var result: any = self.view._first(),
-        foreignEntity = result(),
-        subscription = null;
-
-    result.subscribe(newForeign => {
-        setTimeout(() => {
-            if (foreignEntity !== newForeign) {
-                if (subscription) {
-                    subscription.dispose();
-                    subscription = null;
-                }
-
-                if (newForeign) {
-                    subscription = newForeign[self.foreignId].subscribe(newId => {
-                        self.parent[self.localId](newId);
-                    });
-                }
-
-                foreignEntity = newForeign;
-            }
-        }, 1);
-    });
-
+    var result: any = self.view._first();
     _.extend(result, self, foreignViewFunctions);
 
     return result;
