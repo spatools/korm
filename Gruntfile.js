@@ -175,7 +175,7 @@ module.exports = function (grunt) {
     grunt.registerTask("declaration", ["typescript:declaration", "tsdamdconcat:declaration", "concat:declaration", "clean:temp", "fixdecla"]);
     grunt.registerTask("build", ["tslint:dev", "typescript:dist", "jshint:dist", "declaration"]);
     grunt.registerTask("dev", ["tslint:dev", "typescript:dev", "jshint:dev"]);
-    grunt.registerTask("test", ["dev", "tslint:test", "typescript:test", "jshint:test", "mocha:test", "clean"]);
+    grunt.registerTask("test", ["tslint:test", "dev", "typescript:test", "jshint:test", "mocha:test", "clean"]);
     grunt.registerTask("nuget", ["nugetpack", "nugetpush"]);
 
     grunt.registerTask("default", ["clean", "test", "build"]);
