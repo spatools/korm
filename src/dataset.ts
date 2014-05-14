@@ -351,7 +351,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
 
         var self = <DataSet<any, any>>this,
             config = mapping.getMappingConfiguration(entity, self),
-            relation = _.find(config.relations, r => r.propertyName === propertyName);
+            relation = _.find<mapping.Relation>(config.relations, r => r.propertyName === propertyName);
 
         if (!relation) {
             throw new Error("This relation is not configured on this entity type");
