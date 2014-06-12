@@ -213,10 +213,15 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             return this()[key];
         },
         add: function (entity) {
-            if (!entity.EntityState)
-                mapping.addMappingProperties(entity, this);
+            var state = 1 /* added */;
 
-            entity.EntityState(1 /* added */);
+            if (!entity.EntityState) {
+                mapping.addMappingProperties(entity, this);
+            } else if (this.isAttached(entity) && entity.EntityState() === 3) {
+                state = entity.HasChanges() ? 2 : 0;
+            }
+
+            entity.EntityState(state);
 
             if (!this.getKey(entity))
                 entity[this.key](guid.generateTemp());
