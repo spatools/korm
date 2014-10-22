@@ -419,10 +419,16 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
 
     /** Add entity to dataset, if buffer is false, entity will be instantly post on the server */
     add: function (entity: any): Promise<any> {
-        if (!entity.EntityState)
-            mapping.addMappingProperties(entity, this);
+        var state = mapping.entityStates.added;
 
-        entity.EntityState(mapping.entityStates.added);
+        if (!entity.EntityState) {
+            mapping.addMappingProperties(entity, this);
+        }
+        else if (this.isAttached(entity) && entity.EntityState() === 3) {
+            state = entity.HasChanges() ? 2 : 0;
+        }
+
+        entity.EntityState(state);
 
         if (!this.getKey(entity))
             entity[this.key](guid.generateTemp());
