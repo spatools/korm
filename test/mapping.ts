@@ -328,7 +328,7 @@ describe("Mapping", () => {
 
     describe("mapEntityToJS", () => {
 
-        it("should remove mapping properties from given object", (done) => {
+        it("should remove mapping properties from given objects", (done) => {
             var dataset = common.datacontext.getSet<common.models.Parent, string>("Parents");
 
             common.initDataContext()
@@ -370,6 +370,60 @@ describe("Mapping", () => {
                 .then(() => dataset.load(common.getFirstParentId()))
                 .then(parent => {
                     var obj = mapping.mapEntityToJS(parent, true, dataset);
+
+                    obj.should.have.property("EntityState", mapping.entityStates.unchanged);
+
+                    done();
+                })
+                .catch(done);
+        });
+
+    });
+
+    describe("mapEntitiesToJS", () => {
+
+        it("should remove mapping properties from given object", (done) => {
+            var dataset = common.datacontext.getSet<common.models.Parent, string>("Parents");
+
+            common.initDataContext()
+                .then(() => dataset.load(common.getFirstParentId()))
+                .then(parent => {
+                    var obj = mapping.mapEntitiesToJS([parent], false, dataset)[0];
+
+                    obj.should.not.have.property("EntityState");
+                    obj.should.not.have.property("IsSubmitting");
+                    obj.should.not.have.property("ChangeTracker");
+                    obj.should.not.have.property("HasChanges");
+
+                    done();
+                })
+                .catch(done);
+        });
+
+        it("should remove relation and actions properties from given object", (done) => {
+            var dataset = common.datacontext.getSet<common.models.Parent, string>("Parents");
+
+            common.initDataContext()
+                .then(() => dataset.load(common.getFirstParentId()))
+                .then(parent => {
+                    var obj = mapping.mapEntitiesToJS([parent], false, dataset)[0];
+
+                    obj.should.not.have.property("Children");
+                    obj.should.not.have.property("Foreign");
+                    obj.should.not.have.property("TestAction");
+
+                    done();
+                })
+                .catch(done);
+        });
+
+        it("should keep EntityState property if keepState argument is set to true", (done) => {
+            var dataset = common.datacontext.getSet<common.models.Parent, string>("Parents");
+
+            common.initDataContext()
+                .then(() => dataset.load(common.getFirstParentId()))
+                .then(parent => {
+                    var obj = mapping.mapEntitiesToJS([parent], true, dataset)[0];
 
                     obj.should.have.property("EntityState", mapping.entityStates.unchanged);
 
