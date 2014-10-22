@@ -631,7 +631,7 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             }).then(function () {
                 return self.localstore.removeRange(self.setName, changes.removed);
             }).then(function () {
-                return self.detachRange(changes.removed);
+                return self.detachRange(_.map(changes.removed, self.getKey, self));
             }).then(canceller, canceller);
         }
     };

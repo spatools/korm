@@ -859,7 +859,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
             .then(() => self.storeRange(changes.modified))
 
             .then(() => self.localstore.removeRange(self.setName, changes.removed))
-            .then(() => self.detachRange(changes.removed))
+            .then(() => self.detachRange(_.map(changes.removed, self.getKey, self)))
 
             .then(canceller, canceller);
     }
