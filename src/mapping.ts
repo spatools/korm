@@ -536,6 +536,17 @@ export function mapEntityToJS<T, TKey>(entity: any, keepState: boolean, dataSet:
     return data;
 }
 
+export function mapEntitiesToJS<T, TKey>(entities: any[], keepState: boolean, dataSet: dataset.DataSet<T, TKey>): any {
+    if (entities.length > 0) {
+        var config = getMappingConfiguration(entities, dataSet),
+            mappingRules = ensureRules(config, entities, keepState);
+
+        return koMapping.toJS(entities, mappingRules);
+    }
+
+    return entities;
+}
+
 export function mapEntityFromJSON<T, TKey>(json: string, initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T> {
     var obj = ko.utils.parseJson(json);
     return mapEntityFromJS(obj, initialState, expand, store, dataSet);
