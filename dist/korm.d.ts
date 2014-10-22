@@ -13,6 +13,7 @@ export interface IAdapter {
     post(controller: string, data: any): Promise<any>;
     put(controller: string, id: any, data: any): Promise<any>;
     remove(controller: string, id: any): Promise<any>;
+    batch? (controller: string, changes: any): Promise<any>;
     action? (controller: string, action: string, parameters: any, id?: any): Promise<any>;
 }
 export interface IAdapterResult {
@@ -73,6 +74,12 @@ export interface DataSet<T, TKey> extends KnockoutUnderscoreArrayFunctions<T>, K
     realCount: KnockoutComputed<number>;
     isSynchronized: KnockoutComputed<boolean>;
 }
+export interface DataSetChanges<T> {
+    unchanged?: T[];
+    added?: T[];
+    modified?: T[];
+    removed?: T[];
+}
 export interface DataSetFunctions<T, TKey> {
     setLocalStore(store: stores.IDataStore): void;
     setAdapter(adapter: adapters.IAdapter): void;
@@ -104,7 +111,9 @@ export interface DataSetFunctions<T, TKey> {
     add(entity: T): Promise<T>;
     addRange(entities: T[]): Promise<T[]>;
     update(entity: T): Promise<T>;
+    updateRange(entities: T[]): Promise<T[]>;
     remove(entity: T): Promise<T>;
+    removeRange(entities: T[]): Promise<T[]>;
     resetEntity(entity: T): Promise<any>;
     disposeEntity(entity: T): void;
     isAttached(entity: T): boolean;
@@ -140,12 +149,15 @@ export interface DataSetFunctions<T, TKey> {
     fromJSON(json: string, state: mapping.entityStates): Promise<T>;
     fromJSON(json: string, state: mapping.entityStates, expand: boolean): Promise<T>;
     fromJSON(json: string, state: mapping.entityStates, expand: boolean, store: boolean): Promise<T>;
-    getChanges(): any;
     saveEntity(entity: T): Promise<T>;
+    getChanges(): DataSetChanges<T>;
+    getChanges(entities: T[]): DataSetChanges<T>;
     saveChanges(): Promise<any>;
+    saveChanges(entities: T[]): Promise<any>;
     _remoteCreate(entity: T): Promise<T>;
     _remoteUpdate(entity: T): Promise<T>;
     _remoteRemove(entity: T): Promise<T>;
+    _remoteBatch(changes: DataSetChanges<T>): Promise<void>;
 }
 export function create<T, TKey>(setName: string, keyPropertyName: string, defaultType: string, dataContext: context.DataContext): DataSet<T, TKey>;
 }
@@ -245,6 +257,7 @@ export function resetEntity<T, TKey>(entity: any, dataSet: dataset.DataSet<T, TK
 export function mapEntitiesFromJS<T, TKey>(datas: any[], initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T[]>;
 export function mapEntityFromJS<T, TKey>(data: any, initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T>;
 export function mapEntityToJS<T, TKey>(entity: any, keepState: boolean, dataSet: dataset.DataSet<T, TKey>): any;
+export function mapEntitiesToJS<T, TKey>(entities: any[], keepState: boolean, dataSet: dataset.DataSet<T, TKey>): any;
 export function mapEntityFromJSON<T, TKey>(json: string, initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T>;
 export function mapEntityToJSON<T, TKey>(entity: any, keepstate: boolean, dataSet: dataset.DataSet<T, TKey>): string;
 }

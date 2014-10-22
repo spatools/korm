@@ -245,6 +245,20 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
 
             return Promise.resolve(entity);
         },
+        updateRange: function (entities) {
+            var self = this, toStore = [];
+
+            _.each(entities, function (entity) {
+                if (self.isAttached(entity)) {
+                    entity.EntityState(2 /* modified */);
+                    toStore.push(entity);
+                }
+            });
+
+            return self.storeRange(toStore).then(function () {
+                return entities;
+            });
+        },
         remove: function (entity) {
             var state = entity.EntityState && entity.EntityState();
             if (_.isUndefined(state) || state === 1 /* added */)
@@ -255,6 +269,23 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             }
 
             return Promise.resolve(entity);
+        },
+        removeRange: function (entities) {
+            var self = this, toStore = [];
+
+            _.each(entities, function (entity) {
+                var state = entity.EntityState && entity.EntityState();
+                if (_.isUndefined(state) || state === 1 /* added */)
+                    self.detach(entity);
+                else {
+                    entity.EntityState(3 /* removed */);
+                    toStore.push(entity);
+                }
+            });
+
+            return self.storeRange(toStore).then(function () {
+                return entities;
+            });
         },
         resetEntity: function (entity) {
             mapping.resetEntity(entity, this);
@@ -439,10 +470,16 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             if (typeof store === "undefined") { store = true; }
             return mapping.mapEntityFromJSON(json, state || 0 /* unchanged */, expand, store, this);
         },
-        getChanges: function () {
-            return this.groupBy(function (e) {
-                return e.EntityState();
-            });
+        getChanges: function (entities) {
+            var extractState = function (e) {
+                return mapping.entityStates[e.EntityState()];
+            };
+
+            if (entities) {
+                return _.groupBy(entities, extractState);
+            }
+
+            return this.groupBy(extractState);
         },
         saveEntity: function (entity) {
             var self = this, state = entity.EntityState(), states = mapping.entityStates;
@@ -458,16 +495,22 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
 
             return Promise.resolve(entity);
         },
-        saveChanges: function () {
-            var self = this, changes = self.getChanges(), states = mapping.entityStates, promises = _.union(_.map(changes[1 /* added */], function (e) {
-                return self._remoteCreate(e);
-            }), _.map(changes[2 /* modified */], function (e) {
-                return self._remoteUpdate(e);
-            }), _.map(changes[3 /* removed */], function (e) {
-                return self._remoteRemove(e);
-            }));
+        saveChanges: function (entities) {
+            var self = this, changes = self.getChanges(entities);
 
-            return Promise.all(promises);
+            if (self.adapter.batch) {
+                return self._remoteBatch(changes);
+            } else {
+                var promises = _.union(_.map(changes.added, function (e) {
+                    return self._remoteCreate(e);
+                }), _.map(changes.modified, function (e) {
+                    return self._remoteUpdate(e);
+                }), _.map(changes.removed, function (e) {
+                    return self._remoteRemove(e);
+                }));
+
+                return Promise.all(promises);
+            }
         },
         _remoteCreate: function (entity) {
             var self = this, oldkey = self.getKey(entity), canceller = function () {
@@ -539,6 +582,45 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             }
 
             return Promise.resolve(null);
+        },
+        _remoteBatch: function (changes) {
+            changes.added = changes.added || [];
+            changes.modified = changes.modified || [];
+            changes.removed = changes.removed || [];
+
+            var self = this, all = [].concat(changes.added, changes.modified, changes.removed);
+
+            if (all.length === 0) {
+                return Promise.resolve(null);
+            }
+
+            var canceller = function () {
+                _.each(all, function (entity) {
+                    entity.IsSubmitting(false);
+                });
+            }, _changes = {
+                added: mapping.mapEntitiesToJS(changes.added, false, self),
+                modified: mapping.mapEntitiesToJS(changes.modified, false, self),
+                removed: mapping.mapEntitiesToJS(changes.removed, false, self)
+            };
+
+            _.each(all, function (entity) {
+                entity.IsSubmitting(true);
+            });
+
+            return self.adapter.batch(self.setName, _changes).then(function () {
+                return mapping.updateEntities(changes.added, [], false, false, true, self);
+            }).then(function () {
+                return self.storeRange(changes.added);
+            }).then(function () {
+                return mapping.updateEntities(changes.modified, [], false, false, true, self);
+            }).then(function () {
+                return self.storeRange(changes.modified);
+            }).then(function () {
+                return self.localstore.removeRange(self.setName, changes.removed);
+            }).then(function () {
+                return self.detachRange(changes.removed);
+            }).then(canceller, canceller);
         }
     };
 

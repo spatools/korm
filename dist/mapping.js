@@ -486,6 +486,17 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     }
     exports.mapEntityToJS = mapEntityToJS;
 
+    function mapEntitiesToJS(entities, keepState, dataSet) {
+        if (entities.length > 0) {
+            var config = exports.getMappingConfiguration(entities, dataSet), mappingRules = ensureRules(config, entities, keepState);
+
+            return koMapping.toJS(entities, mappingRules);
+        }
+
+        return entities;
+    }
+    exports.mapEntitiesToJS = mapEntitiesToJS;
+
     function mapEntityFromJSON(json, initialState, expand, store, dataSet) {
         var obj = ko.utils.parseJson(json);
         return exports.mapEntityFromJS(obj, initialState, expand, store, dataSet);
