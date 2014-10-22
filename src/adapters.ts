@@ -18,6 +18,8 @@ export interface IAdapter {
     put(controller: string, id: any, data: any): Promise<any>;
     remove(controller: string, id: any): Promise<any>;
 
+    batch? (controller: string, changes: any): Promise<any>;
+
     action? (controller: string, action: string, parameters: any, id?: any): Promise<any>;
 }
 

@@ -33,6 +33,13 @@ export interface DataSet<T, TKey> extends KnockoutUnderscoreArrayFunctions<T>, K
     isSynchronized: KnockoutComputed<boolean>;
 }
 
+export interface DataSetChanges<T> {
+    unchanged?: T[];
+    added?: T[];
+    modified?: T[];
+    removed?: T[];
+}
+
 export interface DataSetFunctions<T, TKey> {
     /** Change local store */
     setLocalStore(store: stores.IDataStore): void;
@@ -86,10 +93,16 @@ export interface DataSetFunctions<T, TKey> {
     add(entity: T): Promise<T>;
     /** Add entities to dataset, if buffer is false, entities will be instantly post on the server */
     addRange(entities: T[]): Promise<T[]>;
+
     /** Update entity on dataset, if buffer is false, entity will be instantly put on the server */
     update(entity: T): Promise<T>;
+    /** Update entities on dataset, if buffer is false, entities will be instantly put on the server */
+    updateRange(entities: T[]): Promise<T[]>;
+
     /** Remove entity from dataset, if buffer is false, entity will be instantly deleted on the server */
     remove(entity: T): Promise<T>;
+    /** Remove entities from dataset, if buffer is false, entities will be instantly deleted on the server */
+    removeRange(entities: T[]): Promise<T[]>;
 
     /** Reset entity to its original state */
     resetEntity(entity: T): Promise<any>;
@@ -151,12 +164,18 @@ export interface DataSetFunctions<T, TKey> {
     fromJSON(json: string, state: mapping.entityStates, expand: boolean): Promise<T>;
     fromJSON(json: string, state: mapping.entityStates, expand: boolean, store: boolean): Promise<T>;
 
-    /** Get a report of changes in the dataSet */
-    getChanges(): any;
     /** Save changes of an entity to the server */
     saveEntity(entity: T): Promise<T>;
+
+    /** Get a report of changes in the dataSet */
+    getChanges(): DataSetChanges<T>;
+    /** Get a report of changes in given entities */
+    getChanges(entities: T[]): DataSetChanges<T>;
+
     /** Commits all Pending Operations (PUT, DELETE, POST) */
     saveChanges(): Promise<any>;
+    /** Commits all Pending Operations in given entities (PUT, DELETE, POST) */
+    saveChanges(entities: T[]): Promise<any>;
 
     /** Submits an Entity to the Server (internal use) */
     _remoteCreate(entity: T): Promise<T>;
@@ -164,6 +183,9 @@ export interface DataSetFunctions<T, TKey> {
     _remoteUpdate(entity: T): Promise<T>;
     /** Deletes an Item from the Server (internal use) */
     _remoteRemove(entity: T): Promise<T>;
+
+    /** Deletes an Item from the Server (internal use) */
+    _remoteBatch(changes: DataSetChanges<T>): Promise<void>;
 }
 
 //#endregion
@@ -356,7 +378,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         if (!relation) {
             throw new Error("This relation is not configured on this entity type");
         }
-        
+
         if (!mode) mode = self.refreshMode;
         if (!query && !_.isString(mode)) {
             query = mode;
@@ -408,7 +430,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         return this.attach(entity);
     },
     /** Add entities to dataset, if buffer is false, entities will be instantly post on the server */
-    addRange: function (entities: any[]): Promise<any> {
+    addRange: function (entities: any[]): Promise<any[]> {
         _.each(entities, entity => {
             if (!entity.EntityState)
                 mapping.addMappingProperties(entity, this);
@@ -421,6 +443,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
 
         return this.attachRange(entities);
     },
+
     /** Update entity on dataset, if buffer is false, entity will be instantly put on the server */
     update: function (entity: any): Promise<any> {
         if (this.isAttached(entity)) {
@@ -430,6 +453,21 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
 
         return Promise.resolve(entity);
     },
+    /** Update entities on dataset, if buffer is false, entities will be instantly put on the server */
+    updateRange: function (entities: any[]): Promise<any[]> {
+        var self = <DataSet<any, any>>this,
+            toStore = [];
+
+        _.each(entities, entity => {
+            if (self.isAttached(entity)) {
+                entity.EntityState(mapping.entityStates.modified);
+                toStore.push(entity);
+            }
+        });
+
+        return self.storeRange(toStore).then(() => entities);
+    },
+
     /** Remove entity from dataset, if buffer is false, entity will be instantly deleted on the server */
     remove: function (entity: any): Promise<any> {
         var state = entity.EntityState && entity.EntityState();
@@ -441,6 +479,23 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         }
 
         return Promise.resolve(entity);
+    },
+    /** Remove entities from dataset, if buffer is false, entities will be instantly deleted on the server */
+    removeRange: function (entities: any[]): Promise<any[]> {
+        var self = <DataSet<any, any>>this,
+            toStore = [];
+
+        _.each(entities, entity => {
+            var state = entity.EntityState && entity.EntityState();
+            if (_.isUndefined(state) || state === mapping.entityStates.added)
+                self.detach(entity);
+            else {
+                entity.EntityState(mapping.entityStates.removed);
+                toStore.push(entity);
+            }
+        });
+
+        return self.storeRange(toStore).then(() => entities);
     },
 
     /** Reset entity to its original state */
@@ -486,7 +541,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
             toUpdate = false,
             table = self(),
             key, promises = [];
-        
+
         var toStore = _.filter(entities, entity => {
             if (!self.isAttached(entity)) {
                 if (!toUpdate) {
@@ -641,8 +696,14 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     },
 
     /** Get a report of changes in the dataSet */
-    getChanges: function () {
-        return (<DataSet<any, any>>this).groupBy(e => e.EntityState());
+    getChanges: function (entities?: any[]): DataSetChanges<any> {
+        var extractState = e => mapping.entityStates[e.EntityState()];
+
+        if (entities) {
+            return _.groupBy(entities, extractState);
+        }
+
+        return (<DataSet<any, any>>this).groupBy(extractState);
     },
     /** Save changes of an entity to the server */
     saveEntity: function (entity: any): Promise<any> {
@@ -662,18 +723,22 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         return Promise.resolve(entity);
     },
     /** Commits all Pending Operations (PUT, DELETE, POST) */
-    saveChanges: function (): Promise<any> {
+    saveChanges: function (entities?: any[]): Promise<any> {
         var self = <DataSet<any, any>>this,
-            changes = self.getChanges(),
-            states = mapping.entityStates,
+            changes = self.getChanges(entities);
 
-            promises = _.union(
-                _.map(changes[states.added], e => self._remoteCreate(e)),
-                _.map(changes[states.modified], e => self._remoteUpdate(e)),
-                _.map(changes[states.removed], e => self._remoteRemove(e))
+        if (self.adapter.batch) {
+            return self._remoteBatch(changes);
+        }
+        else {
+            var promises = _.union(
+                _.map(changes.added, e => self._remoteCreate(e)),
+                _.map(changes.modified, e => self._remoteUpdate(e)),
+                _.map(changes.removed, e => self._remoteRemove(e))
             );
 
-        return Promise.all(promises);
+            return Promise.all(promises);
+        }
     },
 
     /** Submits an Entity to the Server (internal use) */
@@ -746,6 +811,40 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         }
 
         return Promise.resolve(null);
+    },
+
+    _remoteBatch: function (changes: DataSetChanges<any>): Promise<void> {
+        changes.added = changes.added || [];
+        changes.modified = changes.modified || [];
+        changes.removed = changes.removed || [];
+
+        var self = <DataSet<any, any>>this,
+            all = [].concat(changes.added, changes.modified, changes.removed);
+
+        if (all.length === 0) {
+            return Promise.resolve(null);
+        }
+
+        var canceller = function() { _.each(all, entity => { entity.IsSubmitting(false); }); },
+            _changes = {
+                added: mapping.mapEntitiesToJS(changes.added, false, self),
+                modified: mapping.mapEntitiesToJS(changes.modified, false, self),
+                removed: mapping.mapEntitiesToJS(changes.removed, false, self)
+            };
+
+        _.each(all, entity => { entity.IsSubmitting(true); });
+
+        return self.adapter.batch(self.setName, _changes)
+            .then(() => mapping.updateEntities(changes.added, [], false, false, true, self))
+            .then(() => self.storeRange(changes.added))
+
+            .then(() => mapping.updateEntities(changes.modified, [], false, false, true, self))
+            .then(() => self.storeRange(changes.modified))
+
+            .then(() => self.localstore.removeRange(self.setName, changes.removed))
+            .then(() => self.detachRange(changes.removed))
+
+            .then(canceller, canceller);
     }
 };
 
