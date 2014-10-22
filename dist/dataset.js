@@ -213,15 +213,15 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             return this()[key];
         },
         add: function (entity) {
-            var state = 1 /* added */;
+            var states = mapping.entityStates, defaultState = 1 /* added */;
 
             if (!entity.EntityState) {
                 mapping.addMappingProperties(entity, this);
-            } else if (this.isAttached(entity) && entity.EntityState() === 3) {
-                state = entity.HasChanges() ? 2 : 0;
+            } else if (this.isAttached(entity) && entity.EntityState() === 3 /* removed */) {
+                defaultState = entity.HasChanges() ? 2 /* modified */ : 0 /* unchanged */;
             }
 
-            entity.EntityState(state);
+            entity.EntityState(defaultState);
 
             if (!this.getKey(entity))
                 entity[this.key](guid.generateTemp());
@@ -230,11 +230,18 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
         },
         addRange: function (entities) {
             var _this = this;
-            _.each(entities, function (entity) {
-                if (!entity.EntityState)
-                    mapping.addMappingProperties(entity, _this);
+            var states = mapping.entityStates, defaultState = 1 /* added */, state;
 
-                entity.EntityState(1 /* added */);
+            _.each(entities, function (entity) {
+                state = defaultState;
+
+                if (!entity.EntityState) {
+                    mapping.addMappingProperties(entity, _this);
+                } else if (_this.isAttached(entity) && entity.EntityState() === 3 /* removed */) {
+                    state = entity.HasChanges() ? 2 /* modified */ : 0 /* unchanged */;
+                }
+
+                entity.EntityState(state);
 
                 if (!_this.getKey(entity))
                     entity[_this.key](guid.generateTemp());

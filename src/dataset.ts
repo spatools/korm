@@ -419,16 +419,17 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
 
     /** Add entity to dataset, if buffer is false, entity will be instantly post on the server */
     add: function (entity: any): Promise<any> {
-        var state = mapping.entityStates.added;
+        var states = mapping.entityStates,
+            defaultState = states.added;
 
         if (!entity.EntityState) {
             mapping.addMappingProperties(entity, this);
         }
-        else if (this.isAttached(entity) && entity.EntityState() === 3) {
-            state = entity.HasChanges() ? 2 : 0;
+        else if (this.isAttached(entity) && entity.EntityState() === states.removed) {
+            defaultState = entity.HasChanges() ? states.modified : states.unchanged;
         }
 
-        entity.EntityState(state);
+        entity.EntityState(defaultState);
 
         if (!this.getKey(entity))
             entity[this.key](guid.generateTemp());
@@ -437,11 +438,21 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     },
     /** Add entities to dataset, if buffer is false, entities will be instantly post on the server */
     addRange: function (entities: any[]): Promise<any[]> {
-        _.each(entities, entity => {
-            if (!entity.EntityState)
-                mapping.addMappingProperties(entity, this);
+        var states = mapping.entityStates,
+            defaultState = states.added,
+            state;
 
-            entity.EntityState(mapping.entityStates.added);
+        _.each(entities, entity => {
+            state = defaultState;
+
+            if (!entity.EntityState) {
+                mapping.addMappingProperties(entity, this);
+            }
+            else if (this.isAttached(entity) && entity.EntityState() === states.removed) {
+                state = entity.HasChanges() ? states.modified : states.unchanged;
+            }
+
+            entity.EntityState(state);
 
             if (!this.getKey(entity))
                 entity[this.key](guid.generateTemp());
