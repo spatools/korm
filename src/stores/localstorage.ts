@@ -30,7 +30,7 @@ class LocalStorageStore implements stores.IDataStore {
     getAll(setName: string, query?: _query.ODataQuery): Promise<any[]> {
         return this.getStoreTable(setName).then(table => {
             var result = _.values(table);
-            
+
             if (query) {
                 result = query.apply(result);
 

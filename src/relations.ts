@@ -97,7 +97,7 @@ export interface RelationForeignView<T, TKey, TForeign, TForeignKey> extends Rel
     foreignSet: dataset.DataSet<TForeign, TForeignKey>;
     localId: string;
     foreignId: string;
-    
+
     view: dataview.DataView<TForeign, TForeignKey>;
     ensureRemote: boolean;
 }

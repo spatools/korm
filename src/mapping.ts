@@ -202,7 +202,7 @@ function ensureConfiguration(configs: Configurations, config: Configuration): Co
             else
                 config.relations = baseConfig.relations;
         }
-        
+
         if (baseConfig.actions.length > 0) {
             if (config.actions.length > 0)
                 config.actions = _.union(config.actions, baseConfig.actions);

@@ -33,7 +33,7 @@ class MemoryStore implements stores.IDataStore {
 
             if (query) {
                 result = query.apply(result);
-                
+
                 if (query.selects.size() > 0) {
                     result = self.applySelectsRange(result, query.selects());
                 }
