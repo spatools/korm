@@ -1,33 +1,29 @@
-define(["require", "exports", "underscore", "promise/extensions", "../mapping"], function(require, exports, _, promiseExt, mapping) {
+/// <reference path="../../_definitions.d.ts" />
+define(["require", "exports", "underscore", "promise/extensions", "../mapping"], function (require, exports, _, promiseExt, mapping) {
     var cachePrefix = "__SPA_DATA__";
-
     var LocalStorageStore = (function () {
         function LocalStorageStore(context) {
             this.context = context;
         }
+        //#region Public Methods
         LocalStorageStore.prototype.reset = function () {
             return promiseExt.forEach(this.context.getSets(), function (dataset) {
                 localStorage.removeItem(cachePrefix + dataset.setName);
             });
         };
-
         LocalStorageStore.prototype.getAll = function (setName, query) {
             var _this = this;
             return this.getStoreTable(setName).then(function (table) {
                 var result = _.values(table);
-
                 if (query) {
                     result = query.apply(result);
-
                     if (query.selects.size() > 0) {
                         result = _this.applySelectsRange(result, query.selects());
                     }
-
                     if (query.expands.size() > 0) {
                         return _this.applyExpandsRange(setName, query.expands(), result);
                     }
                 }
-
                 return Promise.resolve(result);
             });
         };
@@ -35,21 +31,17 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
             var _this = this;
             return this.getStoreTable(setName).then(function (table) {
                 var item = table[key];
-
                 if (item && query) {
                     if (query.selects.size() > 0) {
                         item = _this.applySelects(item, query.selects());
                     }
-
                     if (query.expands.size() > 0) {
                         return _this.applyExpands(setName, query.expands(), item);
                     }
                 }
-
                 return item;
             });
         };
-
         LocalStorageStore.prototype.add = function (setName, item) {
             return this.update(setName, item);
         };
@@ -70,7 +62,6 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
                 }
             });
         };
-
         LocalStorageStore.prototype.addRange = function (setName, items) {
             return this.updateRange(setName, items);
         };
@@ -81,7 +72,6 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
                     var key = _this.getKey(setName, item);
                     table[key] = _this.toJS(setName, item);
                 });
-
                 return _this.setStoreTable(setName, table);
             });
         };
@@ -92,11 +82,11 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
                     if (table[key])
                         delete table[key];
                 });
-
                 return _this.setStoreTable(setName, table);
             });
         };
-
+        //#endregion
+        //#region Private Methods
         LocalStorageStore.prototype.getStoreTable = function (setName) {
             return promiseExt.timeout().then(function () {
                 return JSON.parse(localStorage.getItem(cachePrefix + setName)) || {};
@@ -107,7 +97,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
                 localStorage.setItem(cachePrefix + setName, JSON.stringify(setValue));
             });
         };
-
+        /* return set key or item key if specified */
         LocalStorageStore.prototype.getKey = function (setName, item) {
             var dataset = this.context.getSet(setName);
             return item ? dataset.getKey(item) : dataset.key;
@@ -116,52 +106,36 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
             var dataset = this.context.getSet(setName);
             return dataset.toJS(entity, true);
         };
-
         LocalStorageStore.prototype.applySelects = function (item, selects) {
             var args = [item, "$type", "odata.type", "EntityState"].concat(selects);
             return _.pick.apply(_, args);
         };
         LocalStorageStore.prototype.applySelectsRange = function (items, selects) {
             var _this = this;
-            return _.map(items, function (item) {
-                return _this.applySelects(item, selects);
-            });
+            return _.map(items, function (item) { return _this.applySelects(item, selects); });
         };
-
         LocalStorageStore.prototype.applyExpands = function (setName, expands, item, _set) {
             var _this = this;
             var dataset = _set || this.context.getSet(setName), conf = mapping.getMappingConfiguration(item, dataset), promises = _.filterMap(conf.relations, function (relation) {
                 if (_.contains(expands, relation.propertyName)) {
                     return promiseExt.timeout().then(function () {
                         var q = relation.toQuery(item, dataset, _this.context.getSet(relation.controllerName));
-
                         return _this.getAll(relation.controllerName, q).then(function (entities) {
                             if (relation.type === 1 /* one */)
                                 entities = entities[0];
-
                             item[relation.propertyName] = entities;
                         });
                     });
                 }
             });
-
-            return Promise.all(promises).then(function () {
-                return item;
-            });
+            return Promise.all(promises).then(function () { return item; });
         };
         LocalStorageStore.prototype.applyExpandsRange = function (setName, expands, result) {
             var _this = this;
-            var dataset = this.context.getSet(setName), promises = _.map(result, function (item) {
-                return _this.applyExpands(setName, expands, item, dataset);
-            });
-
-            return Promise.all(promises).then(function () {
-                return result;
-            });
+            var dataset = this.context.getSet(setName), promises = _.map(result, function (item) { return _this.applyExpands(setName, expands, item, dataset); });
+            return Promise.all(promises).then(function () { return result; });
         };
         return LocalStorageStore;
     })();
-
-    
     return LocalStorageStore;
 });

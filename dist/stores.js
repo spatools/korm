@@ -1,13 +1,12 @@
-define(["require", "exports", "promise/extensions", "./stores/memory"], function(require, exports, promiseExt, MemoryStore) {
+/// <reference path="../_definitions.d.ts" />
+define(["require", "exports", "promise/extensions", "./stores/memory"], function (require, exports, promiseExt, MemoryStore) {
     var stores = {
         "memory": MemoryStore
     };
-
     function getDefaultStore(context) {
         return new MemoryStore(context);
     }
     exports.getDefaultStore = getDefaultStore;
-
     function getStore(name, context) {
         return Promise.cast(stores[name] || promiseExt.module("korm/stores/" + name)).then(function (Store) {
             stores[name] = Store;
