@@ -197,16 +197,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
             var _this = this;
             return this.ensureDatabase().then(function (db) {
                 return new Promise(function (resolve, reject) {
-                    var entities = [], storeName = _this.prefix + setName, store = db.transaction(storeName, "readonly").objectStore(storeName), cursor;
-                    if (query && query.filters.size() > 0) {
-                        var ids = _this.indexes[setName], filter = query.filters.find(function (f) { return !_.isString(f) && _.contains(ids, f.field()) && f.operator() === _query.operator.equal; });
-                        if (filter) {
-                            cursor = store.index(filter.field()).openCursor(new win.IDBKeyRange().only(filter.value()));
-                        }
-                    }
-                    if (!cursor) {
-                        cursor = store.openCursor();
-                    }
+                    var entities = [], storeName = _this.prefix + setName, store = db.transaction(storeName, "readonly").objectStore(storeName), cursor = _this.createCursor(setName, store, query);
                     cursor.onsuccess = function (e) {
                         var _cursor = e.target.result;
                         if (_cursor) {
@@ -219,6 +210,45 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
                     cursor.onerror = reject;
                 });
             });
+        };
+        IndexedDBStore.prototype.createCursor = function (setName, store, query) {
+            var ids = this.indexes[setName], op = _query.operator, key = this.getKey(setName), idx, range;
+            // Add primary key in ids to filter
+            ids.push(key);
+            // If no query or no filter
+            if (query && query.filters.size() > 0) {
+                var operators = [op.equal, op.greaterThan, op.greaterThanOrEqual, op.lessThan, op.lessThanOrEqual], filters = query.filters.filter(function (f) { return !_.isString(f) && _.contains(ids, f.field()) && _.contains(operators, f.operator()); });
+                if (filters.length > 0) {
+                    if (filters.length === 1) {
+                        var filter = filters[0], operator = filter.operator();
+                        // If it's the primary key, don't query index
+                        if (filter.field() !== key) {
+                            idx = filter.field();
+                        }
+                        if (operator === op.equal) {
+                            range = win.IDBKeyRange.only(filter.value());
+                        }
+                        else {
+                            var method = operator.indexOf("g") === 0 ? "upperBound" : "lowerBound", open = operator.indexOf("t") !== -1; // gt / lt
+                            range = win.IDBKeyRange[method](filter.value(), open);
+                        }
+                    }
+                    else if (filters.length === 2 && filters[0].field() === filters[1].field()) {
+                        var lowerFilter = filters[0].operator().indexOf("l") === 0 ? filters[0] : filters[1], upperFilter = lowerFilter === filters[0] ? filters[1] : filters[0], lower = lowerFilter.value(), upper = upperFilter.value(), lowerOpen = lowerFilter.operator().indexOf("t") !== -1, upperOpen = upperFilter.operator().indexOf("t") !== -1; // gt / lt
+                        // If it's the primary key, don't query index
+                        if (filters[0].field() !== key) {
+                            idx = filters[0].field();
+                        }
+                        range = win.IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen);
+                    }
+                }
+            }
+            if (idx) {
+                return store.index(idx).openCursor(range);
+            }
+            else {
+                return store.openCursor(range);
+            }
         };
         IndexedDBStore.prototype.getEntity = function (setName, key) {
             var _this = this;
