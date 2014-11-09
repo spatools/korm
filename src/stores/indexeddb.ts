@@ -31,7 +31,7 @@ class IndexedDBStore implements stores.IDataStore {
 
     //#region Public Methods
 
-    
+
     reset(): Promise<void> {
         if (this.db)
             this.db.close();
@@ -118,7 +118,7 @@ class IndexedDBStore implements stores.IDataStore {
                 transaction.onerror = reject;
                 transaction.oncomplete = e => resolve(undefined);
 
-                _.each(items, item => store.put(this.toJS(setName, item)));
+                _.each(this.toJSRange(setName, items), item => store.put(item));
             });
         });
     }
@@ -223,10 +223,24 @@ class IndexedDBStore implements stores.IDataStore {
         this.indexes = {};
         return promiseExt.timeout().then(() => {
             _.each(this.context.getSets(), dataset => {
-                var conf = mapping.getMappingConfiguration(null, dataset),
-                    ids = _.map(conf.relations, relation => relation.propertyName);
+                var conf = mapping.getMappingConfiguration(null, dataset);
 
-                this.indexes[dataset.setName] = ids;
+                _.each(conf.relations, relation => {
+                    if (relation.type === mapping.relationTypes.one) {
+                        if (!this.indexes[dataset.setName]) {
+                            this.indexes[dataset.setName] = [];
+                        }
+
+                        this.indexes[dataset.setName].push(relation.foreignKey);
+                    }
+                    else if (relation.type === mapping.relationTypes.many) {
+                        if (!this.indexes[relation.controllerName]) {
+                            this.indexes[relation.controllerName] = [];
+                        }
+
+                        this.indexes[relation.controllerName].push(relation.foreignKey);
+                    }
+                });
             });
         });
     }
@@ -283,9 +297,29 @@ class IndexedDBStore implements stores.IDataStore {
         var dataset = this.context.getSet(setName);
         return item ? dataset.getKey(item) : dataset.key;
     }
-    private toJS(setName: string, entity: any): any {
-        var dataset = this.context.getSet(setName);
-        return dataset.toJS(entity, true);
+    private toJS(setName: string, item: any): any {
+        var dataset = this.context.getSet(setName),
+            result = dataset.toJS(item, true),
+            key = dataset.key;
+
+        if (!result[key]) {
+            result[key] = dataset.getKey(item);
+        }
+
+        return result;
+    }
+    private toJSRange(setName: string, items: any[]): any[] {
+        var dataset = this.context.getSet(setName),
+            results = dataset.toJSRange(items, true),
+            key = dataset.key;
+
+        return _.map(results, (result, i) => {
+            if (!result[key]) {
+                result[key] = dataset.getKey(items[i]);
+            }
+
+            return result;
+        });
     }
 
     private applySelects(item: any, selects: string[]): any {
