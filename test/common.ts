@@ -247,7 +247,7 @@ export class FakeDataAdapter implements adapters.IAdapter {
         return this.getStore(controller).then(store => {
             var dataset = this.context.getSet(controller),
                 key = guid.generate();
-            
+
             data[dataset.key] = key;
             store[key] = data;
 

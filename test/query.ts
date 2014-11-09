@@ -29,7 +29,7 @@ describe("Query", () => {
 
                 querystring.should.equal("MyField eq 'test'");
             });
-            
+
             it("should add guid type when used with a GUID value", () => {
                 var filter = new query.Filter("MyField", query.operator.equal, guidHelpers.validGuid1),
                     querystring = filter.toQueryString();
