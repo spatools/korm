@@ -250,22 +250,9 @@ class IndexedDBStore implements stores.IDataStore {
                 var entities = [],
                     storeName = this.prefix + setName,
                     store = db.transaction(storeName, "readonly").objectStore(storeName),
-                    cursor;
+                    cursor = this.createCursor(setName, store, query);
 
-                if (query && query.filters.size() > 0) {
-                    var ids = this.indexes[setName],
-                        filter: any = query.filters.find((f: any) => !_.isString(f) && _.contains(ids, f.field()) && f.operator() === _query.operator.equal);
-
-                    if (filter) {
-                        cursor = store.index(filter.field()).openCursor(new win.IDBKeyRange().only(filter.value()));
-                    }
-                }
-
-                if (!cursor) {
-                    cursor = store.openCursor();
-                }
-
-                cursor.onsuccess = function (e) {
+                cursor.onsuccess = function (e: any) {
                     var _cursor = e.target.result;
                     if (_cursor) {
                         entities.push(_cursor.value);
@@ -278,6 +265,77 @@ class IndexedDBStore implements stores.IDataStore {
                 cursor.onerror = reject;
             });
         });
+    }
+    private createCursor(setName: string, store: IDBObjectStore, query?: _query.ODataQuery): IDBRequest {
+        var ids = this.indexes[setName],
+            op = _query.operator,
+            key = this.getKey(setName),
+
+            idx: string,
+            range: IDBKeyRange;
+
+        // Add primary key in ids to filter
+        ids.push(key);
+
+        // If no query or no filter
+        if (query && query.filters.size() > 0) {
+            var operators = [op.equal, op.greaterThan, op.greaterThanOrEqual, op.lessThan, op.lessThanOrEqual],
+
+                filters: _query.Filter[] = query.filters.filter((f: any) =>
+                    !_.isString(f) &&
+                    _.contains(ids, f.field()) &&
+                    _.contains(operators, f.operator())
+                );
+
+            if (filters.length > 0) {
+                if (filters.length === 1) {
+                    var filter = filters[0],
+                        operator = filter.operator();
+
+                    // If it's the primary key, don't query index
+                    if (filter.field() !== key) {
+                        idx = filter.field();
+                    }
+
+                    if (operator === op.equal) {
+                        range = win.IDBKeyRange.only(filter.value());
+                    }
+                    else {
+                        var method = operator.indexOf("g") === 0 ? "upperBound" : "lowerBound", // ge, gt / le, lt
+                            open = operator.indexOf("t") !== -1; // gt / lt
+
+                        range = win.IDBKeyRange[method](filter.value(), open);
+                    }
+                }
+
+                // a < entity < b
+                else if (filters.length === 2 && filters[0].field() === filters[1].field()) {
+
+                    var lowerFilter = filters[0].operator().indexOf("l") === 0 ? filters[0] : filters[1],
+                        upperFilter = lowerFilter === filters[0] ? filters[1] : filters[0],
+
+                        lower = lowerFilter.value(),
+                        upper = upperFilter.value(),
+
+                        lowerOpen = lowerFilter.operator().indexOf("t") !== -1, // gt / lt
+                        upperOpen = upperFilter.operator().indexOf("t") !== -1; // gt / lt
+
+                    // If it's the primary key, don't query index
+                    if (filters[0].field() !== key) {
+                        idx = filters[0].field();
+                    }
+
+                    range = win.IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen);
+                }
+            }
+        }
+
+        if (idx) {
+            return store.index(idx).openCursor(range);
+        }
+        else {
+            return store.openCursor(range);
+        }
     }
     private getEntity(setName: string, key: any): Promise<any> {
         return this.ensureDatabase().then(db => {
