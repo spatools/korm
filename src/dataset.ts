@@ -144,6 +144,9 @@ export interface DataSetFunctions<T, TKey> {
     /** Create a JS object from given entity */
     toJS(entity: T): any;
     toJS(entity: T, keepstate: boolean): any;
+    /** Create a JS array from given entities */
+    toJSRange(entity: T[]): any[];
+    toJSRange(entity: T[], keepstate: boolean): any[];
     /** Serialize given entity to JSON */
     toJSON(entity: T): string;
     toJSON(entity: T, keepstate: boolean): string;
@@ -693,6 +696,10 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     /** Create a JS object from given entity */
     toJS: function (entity: any, keepstate: boolean = false): any {
         return mapping.mapEntityToJS(entity, keepstate, this);
+    },
+    /** Create a JS object from given entity */
+    toJSRange: function (entities: any[], keepstate: boolean = false): any[] {
+        return mapping.mapEntitiesToJS(entities, keepstate, this);
     },
     /** Serialize given entity to JSON */
     toJSON: function (entity: any, keepstate: boolean = false): string {
