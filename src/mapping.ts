@@ -239,10 +239,11 @@ function ensureRules(config: Configuration, entity?: any, keepState?: boolean): 
         config._rules = result;
     }
 
-    if (keepState)
+    if (keepState) {
         result.ignore = _.without(result.ignore, "EntityState");
+    }
 
-    if (entity && entity.__ko_mapping__) {
+    if (entity) {
         entity.__ko_mapping__ = result;
     }
 
@@ -538,10 +539,14 @@ export function mapEntityToJS<T, TKey>(entity: any, keepState: boolean, dataSet:
 
 export function mapEntitiesToJS<T, TKey>(entities: any[], keepState: boolean, dataSet: dataset.DataSet<T, TKey>): any {
     if (entities.length > 0) {
-        var config = getMappingConfiguration(entities, dataSet),
-            mappingRules = ensureRules(config, entities, keepState);
+        var defaultRules = getMappingConfiguration(null, dataSet).rules;
 
-        return koMapping.toJS(entities, mappingRules);
+        _.each(entities, (entity) => {
+            var config = getMappingConfiguration(entity, dataSet);
+            ensureRules(config, entity, keepState);
+        });
+
+        return koMapping.toJS(entities, defaultRules);
     }
 
     return entities;
