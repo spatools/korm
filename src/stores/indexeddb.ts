@@ -267,7 +267,7 @@ class IndexedDBStore implements stores.IDataStore {
         });
     }
     private createCursor(setName: string, store: IDBObjectStore, query?: _query.ODataQuery): IDBRequest {
-        var ids = this.indexes[setName],
+        var ids = this.indexes[setName] || [],
             op = _query.operator,
             key = this.getKey(setName),
 
@@ -311,7 +311,7 @@ class IndexedDBStore implements stores.IDataStore {
                 // a < entity < b
                 else if (filters.length === 2 && filters[0].field() === filters[1].field()) {
 
-                    var lowerFilter = filters[0].operator().indexOf("l") === 0 ? filters[0] : filters[1],
+                    var lowerFilter = filters[0].operator().indexOf("g") === 0 ? filters[0] : filters[1],
                         upperFilter = lowerFilter === filters[0] ? filters[1] : filters[0],
 
                         lower = lowerFilter.value(),
