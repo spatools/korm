@@ -243,11 +243,11 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
                     }
                 }
             }
-            if (idx) {
-                return store.index(idx).openCursor(range);
+            if (range) {
+                return idx ? store.index(idx).openCursor(range) : store.openCursor(range);
             }
             else {
-                return store.openCursor(range);
+                return idx ? store.index(idx).openCursor() : store.openCursor();
             }
         };
         IndexedDBStore.prototype.getEntity = function (setName, key) {
