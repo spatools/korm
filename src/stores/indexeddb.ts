@@ -330,11 +330,11 @@ class IndexedDBStore implements stores.IDataStore {
             }
         }
 
-        if (idx) {
-            return store.index(idx).openCursor(range);
+        if (range) {
+            return idx ? store.index(idx).openCursor(range) : store.openCursor(range);
         }
         else {
-            return store.openCursor(range);
+            return idx ? store.index(idx).openCursor() : store.openCursor();
         }
     }
     private getEntity(setName: string, key: any): Promise<any> {
