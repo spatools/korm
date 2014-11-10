@@ -178,9 +178,10 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
             result.ignore = _.union(config.rules.ignore || [], relations, config.actions, exports.defaultRules.ignore);
             config._rules = result;
         }
-        if (keepState)
+        if (keepState) {
             result.ignore = _.without(result.ignore, "EntityState");
-        if (entity && entity.__ko_mapping__) {
+        }
+        if (entity) {
             entity.__ko_mapping__ = result;
         }
         return result;
@@ -406,8 +407,12 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     exports.mapEntityToJS = mapEntityToJS;
     function mapEntitiesToJS(entities, keepState, dataSet) {
         if (entities.length > 0) {
-            var config = getMappingConfiguration(entities, dataSet), mappingRules = ensureRules(config, entities, keepState);
-            return koMapping.toJS(entities, mappingRules);
+            var defaultRules = getMappingConfiguration(null, dataSet).rules;
+            _.each(entities, function (entity) {
+                var config = getMappingConfiguration(entity, dataSet);
+                ensureRules(config, entity, keepState);
+            });
+            return koMapping.toJS(entities, defaultRules);
         }
         return entities;
     }
