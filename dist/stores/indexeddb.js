@@ -212,7 +212,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
             });
         };
         IndexedDBStore.prototype.createCursor = function (setName, store, query) {
-            var ids = this.indexes[setName], op = _query.operator, key = this.getKey(setName), idx, range;
+            var ids = this.indexes[setName] || [], op = _query.operator, key = this.getKey(setName), idx, range;
             // Add primary key in ids to filter
             ids.push(key);
             // If no query or no filter
@@ -234,7 +234,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
                         }
                     }
                     else if (filters.length === 2 && filters[0].field() === filters[1].field()) {
-                        var lowerFilter = filters[0].operator().indexOf("l") === 0 ? filters[0] : filters[1], upperFilter = lowerFilter === filters[0] ? filters[1] : filters[0], lower = lowerFilter.value(), upper = upperFilter.value(), lowerOpen = lowerFilter.operator().indexOf("t") !== -1, upperOpen = upperFilter.operator().indexOf("t") !== -1; // gt / lt
+                        var lowerFilter = filters[0].operator().indexOf("g") === 0 ? filters[0] : filters[1], upperFilter = lowerFilter === filters[0] ? filters[1] : filters[0], lower = lowerFilter.value(), upper = upperFilter.value(), lowerOpen = lowerFilter.operator().indexOf("t") !== -1, upperOpen = upperFilter.operator().indexOf("t") !== -1; // gt / lt
                         // If it's the primary key, don't query index
                         if (filters[0].field() !== key) {
                             idx = filters[0].field();
