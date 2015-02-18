@@ -34,7 +34,7 @@ export class DataContext {
     }
 
     /** Get all sets defined in current context */
-    public getSets(): dataset.DataSet<any, any>[]{
+    public getSets(): dataset.DataSet<any, any>[] {
         return _.values(this.sets);
     }
     /** Get set from name */
@@ -68,7 +68,7 @@ export class DataContext {
     public setLocalStore(storeType: any): Promise<any> {
         var op = _.isString(storeType) ? stores.getStore(storeType, this) : storeType.init().then(() => storeType);
 
-        return Promise.cast<stores.IDataStore>(op).then(store => {
+        return Promise.resolve<stores.IDataStore>(op).then(store => {
             this.store = store;
             _.each(this.sets, dataset => dataset.setLocalStore(store));
         });
@@ -80,7 +80,7 @@ export class DataContext {
     public setAdapter(adapterType: any): Promise<any> {
         var op = _.isString(adapterType) ? adapters.getAdapter(adapterType) : adapterType;
 
-        return Promise.cast<adapters.IAdapter>(op).then(adapter => {
+        return Promise.resolve<adapters.IAdapter>(op).then(adapter => {
             this.adapter = adapter;
             _.each(this.sets, set => set.setAdapter(adapter));
         });

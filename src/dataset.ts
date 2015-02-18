@@ -243,7 +243,7 @@ function _updateDataSet(dataset: DataSet<any, any>, result: adapters.IAdapterRes
         }
     }
 
-    return Promise.cast(rmDfd).then(() => {
+    return Promise.resolve(rmDfd).then(() => {
         if (result.count >= 0 && (!query || query.filters.size() === 0))
             dataset.remoteCount(result.count);
 
@@ -544,7 +544,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         if (!self.isAttached(entity)) {
             self.valueWillMutate();
 
-            return Promise.cast(store && self.localstore.add(self.setName, entity))
+            return Promise.resolve(store && self.localstore.add(self.setName, entity))
                 .then(() => {
                     table[key] = entity;
                     return _initAttachedEntity(self, entity);

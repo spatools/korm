@@ -9,7 +9,7 @@ requirejs.config({
 
     paths: {
         "jquery": "../bower_components/jquery/dist/jquery",
-        "knockout": "../bower_components/knockout.js/knockout.debug",
+        "knockout": "../bower_components/knockoutjs/dist/knockout.debug",
         "knockout.mapping": "../bower_components/knockout.mapping/knockout.mapping",
         "underscore": "../bower_components/underscore/underscore",
         "moment": "../bower_components/moment/moment",
@@ -18,7 +18,7 @@ requirejs.config({
 
         "mocha": "../bower_components/mocha/mocha",
         "should": "../bower_components/should/should",
-        "sinon": "../bower_components/sinon/sinon"
+        "sinon": "../bower_components/sinon/lib/sinon"
     },
 
     shim: {

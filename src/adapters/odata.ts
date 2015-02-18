@@ -96,7 +96,7 @@ class ODataAdapter implements adapters.IAdapter {
         if (data)
             options.data = JSON.stringify(data);
 
-        return Promise.cast<any>($.ajax(options));
+        return Promise.resolve<any>($.ajax(options));
     }
 
     /** Get entity collection filtered by query (if provided) (GET) */

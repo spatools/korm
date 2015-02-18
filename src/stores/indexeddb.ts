@@ -208,7 +208,7 @@ class IndexedDBStore implements stores.IDataStore {
 
     /** Ensure correct database is opened */
     private ensureDatabase(): Promise<IDBDatabase> {
-        return Promise.cast(this.db || this.checkDatabaseConnection());
+        return Promise.resolve(this.db || this.checkDatabaseConnection());
     }
 
     //#endregion

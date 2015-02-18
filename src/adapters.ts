@@ -37,7 +37,7 @@ export function getDefaultAdapter(): IAdapter {
 }
 
 export function getAdapter(name: string): Promise<IAdapter> {
-    return Promise.cast<IAdapterConstructor>(adapters[name] || promiseExt.module("korm/adapters/" + name)).then<IAdapter>(Adapter => {
+    return Promise.resolve<IAdapterConstructor>(adapters[name] || promiseExt.module("korm/adapters/" + name)).then<IAdapter>(Adapter => {
         adapters[name] = Adapter;
         return new Adapter();
     });

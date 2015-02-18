@@ -39,7 +39,7 @@ export function getDefaultStore(context: context.DataContext): IDataStore {
 }
 
 export function getStore(name: string, context: context.DataContext): Promise<IDataStore> {
-    return Promise.cast<IDataStoreConstructor>(stores[name] || promiseExt.module("korm/stores/" + name)).then<IDataStore>(Store => {
+    return Promise.resolve<IDataStoreConstructor>(stores[name] || promiseExt.module("korm/stores/" + name)).then<IDataStore>(Store => {
         stores[name] = Store;
         return new Store(context);
     });

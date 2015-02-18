@@ -165,7 +165,7 @@ var foreignViewFunctions: RelationForeignViewFunctions<any, any, any, any> = {
             entity = this(),
             op = this.foreignSet.isAttached(newEntity) ? newEntity : this.foreignSet.add(newEntity);
 
-        return Promise.cast(op)
+        return Promise.resolve(op)
             .then(function () {
                 self.parent[self.localId](ko.unwrap(newEntity[self.foreignId]));
 
@@ -177,7 +177,7 @@ var foreignViewFunctions: RelationForeignViewFunctions<any, any, any, any> = {
     /** Save changes of foreign entity to the server */
     save: function (): Promise<any> {
         var entity = this();
-        return Promise.cast(entity && this.view.saveEntity(entity));
+        return Promise.resolve(entity && this.view.saveEntity(entity));
     }
 };
 
