@@ -1,7 +1,11 @@
 ﻿'use strict';
 
 module.exports = function (grunt) {
-    require('load-grunt-tasks')(grunt); // Load grunt tasks automatically
+    // Load grunt tasks automatically
+    require("jit-grunt")(grunt, {
+        nugetpack: "grunt-nuget",
+        nugetpush: "grunt-nuget"
+    });
     require('time-grunt')(grunt); // Time how long tasks take. Can help when optimizing build times
 
     var options = {
