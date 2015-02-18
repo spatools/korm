@@ -40,7 +40,7 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
                 rmDfd = dataset.localstore.removeRange(dataset.setName, report.removed).then(function () { return dataset.detachRange(report.removed); });
             }
         }
-        return Promise.cast(rmDfd).then(function () {
+        return Promise.resolve(rmDfd).then(function () {
             if (result.count >= 0 && (!query || query.filters.size() === 0))
                 dataset.remoteCount(result.count);
             return isArray ? dataset.attachOrUpdateRange(result.data, false, !!query && query.expands.size() > 0) : dataset.attachOrUpdate(result.data, false, !!query && query.expands.size() > 0);
@@ -276,7 +276,7 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             var self = this, table = self(), key = self.getKey(entity);
             if (!self.isAttached(entity)) {
                 self.valueWillMutate();
-                return Promise.cast(store && self.localstore.add(self.setName, entity)).then(function () {
+                return Promise.resolve(store && self.localstore.add(self.setName, entity)).then(function () {
                     table[key] = entity;
                     return _initAttachedEntity(self, entity);
                 }).then(function () { return self.valueHasMutated(); }).then(function () { return entity; });

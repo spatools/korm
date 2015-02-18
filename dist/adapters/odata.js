@@ -76,7 +76,7 @@ define(["require", "exports", "underscore", "jquery", "koutils/utils", "./prefil
             };
             if (data)
                 options.data = JSON.stringify(data);
-            return Promise.cast($.ajax(options));
+            return Promise.resolve($.ajax(options));
         };
         /** Get entity collection filtered by query (if provided) (GET) */
         ODataAdapter.prototype.getAll = function (controller, query) {

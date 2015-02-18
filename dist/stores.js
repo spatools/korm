@@ -8,7 +8,7 @@ define(["require", "exports", "promise/extensions", "./stores/memory"], function
     }
     exports.getDefaultStore = getDefaultStore;
     function getStore(name, context) {
-        return Promise.cast(stores[name] || promiseExt.module("korm/stores/" + name)).then(function (Store) {
+        return Promise.resolve(stores[name] || promiseExt.module("korm/stores/" + name)).then(function (Store) {
             stores[name] = Store;
             return new Store(context);
         });

@@ -91,7 +91,7 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
         change: function (newEntity, deleteOld) {
             if (deleteOld === void 0) { deleteOld = false; }
             var self = this, entity = this(), op = this.foreignSet.isAttached(newEntity) ? newEntity : this.foreignSet.add(newEntity);
-            return Promise.cast(op).then(function () {
+            return Promise.resolve(op).then(function () {
                 self.parent[self.localId](ko.unwrap(newEntity[self.foreignId]));
                 if (deleteOld && entity)
                     return self.foreignSet.remove(entity);
@@ -100,7 +100,7 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
         /** Save changes of foreign entity to the server */
         save: function () {
             var entity = this();
-            return Promise.cast(entity && this.view.saveEntity(entity));
+            return Promise.resolve(entity && this.view.saveEntity(entity));
         }
     };
     /** Create an observable relation to many entities */

@@ -36,7 +36,7 @@ define(["require", "exports", "jquery", "./prefilter", "../query"], function (re
             };
             if (data)
                 options.data = JSON.stringify(data);
-            return Promise.cast($.ajax(options));
+            return Promise.resolve($.ajax(options));
         };
         /** Get entity collection filtered by query (if provided) (GET) */
         WebApiAdapter.prototype.getAll = function (controller, query) {

@@ -163,7 +163,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
         };
         /** Ensure correct database is opened */
         IndexedDBStore.prototype.ensureDatabase = function () {
-            return Promise.cast(this.db || this.checkDatabaseConnection());
+            return Promise.resolve(this.db || this.checkDatabaseConnection());
         };
         //#endregion
         //#region Private Methods

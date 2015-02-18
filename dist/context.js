@@ -51,7 +51,7 @@ define(["require", "exports", "underscore", "promise", "./mapping", "./stores", 
         DataContext.prototype.setLocalStore = function (storeType) {
             var _this = this;
             var op = _.isString(storeType) ? stores.getStore(storeType, this) : storeType.init().then(function () { return storeType; });
-            return Promise.cast(op).then(function (store) {
+            return Promise.resolve(op).then(function (store) {
                 _this.store = store;
                 _.each(_this.sets, function (dataset) { return dataset.setLocalStore(store); });
             });
@@ -59,7 +59,7 @@ define(["require", "exports", "underscore", "promise", "./mapping", "./stores", 
         DataContext.prototype.setAdapter = function (adapterType) {
             var _this = this;
             var op = _.isString(adapterType) ? adapters.getAdapter(adapterType) : adapterType;
-            return Promise.cast(op).then(function (adapter) {
+            return Promise.resolve(op).then(function (adapter) {
                 _this.adapter = adapter;
                 _.each(_this.sets, function (set) { return set.setAdapter(adapter); });
             });

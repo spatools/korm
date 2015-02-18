@@ -8,7 +8,7 @@ define(["require", "exports", "promise/extensions", "./adapters/odata"], functio
     }
     exports.getDefaultAdapter = getDefaultAdapter;
     function getAdapter(name) {
-        return Promise.cast(adapters[name] || promiseExt.module("korm/adapters/" + name)).then(function (Adapter) {
+        return Promise.resolve(adapters[name] || promiseExt.module("korm/adapters/" + name)).then(function (Adapter) {
             adapters[name] = Adapter;
             return new Adapter();
         });
