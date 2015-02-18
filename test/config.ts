@@ -18,7 +18,7 @@ requirejs.config({
 
         "mocha": "../bower_components/mocha/mocha",
         "should": "../bower_components/should/should",
-        "sinon": "../bower_components/sinon/lib/sinon"
+        "sinon": "../bower_components/sinon/sinon"
     },
 
     shim: {

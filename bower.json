@@ -29,15 +29,15 @@
     "test"
   ],
   "dependencies": {
-    "koutils": ">=0.1.6",
-    "komoment": ">=0.1.0",
-    "promise-ext": ">=0.3.0",
-    "jquery": ">=1.9.0",
+    "koutils": "^0.1.7",
+    "komoment": "^0.1.1",
+    "promise-ext": "^0.3.6",
+    "jquery": "^1.9.1",
     "knockout.mapping": "SteveSanderson/knockout.mapping"
   },
   "devDependencies": {
-    "mocha": "~1.17.1",
-    "should": "3.1.2",
+    "mocha": "^2.1.0",
+    "should": "^5.0.0",
     "sinon": "http://sinonjs.org/releases/sinon-1.8.1.js"
   }
 }
