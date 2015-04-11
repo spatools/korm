@@ -29,16 +29,16 @@
     "test"
   ],
   "dependencies": {
-    "koutils": "^1.0.1",
-    "kounderscore": "^0.1.1",
+    "koutils": "^1.0.5",
+    "kounderscore": "^0.1.2",
     "komoment": "^0.1.1",
     "promise-ext": "^0.3.6",
     "jquery": ">=1.9.1",
     "knockout.mapping": "SteveSanderson/knockout.mapping"
   },
   "devDependencies": {
-    "mocha": "^2.1.0",
-    "should": "^5.0.0",
+    "mocha": "~1.17.1",
+    "should": "3.1.2",
     "sinon": "http://sinonjs.org/releases/sinon-1.8.1.js"
   }
 }
