@@ -41,8 +41,8 @@ export module models {
 
         constructor() {
             this["odata.type"] = "SPATools.Models.Parent";
-            this.TitleUpper = ko.computed(() => this.Title().toUpperCase());
-            this.TitleLower = ko.computed(() => this.Title().toLowerCase());
+            this.TitleUpper = ko.pureComputed(() => this.Title().toUpperCase());
+            this.TitleLower = ko.pureComputed(() => this.Title().toLowerCase());
         }
     }
     export class Child {

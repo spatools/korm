@@ -15,6 +15,7 @@ requirejs.config({
         "moment": "../bower_components/moment/moment",
         "promise": "../bower_components/promise-ext/dist/promise",
         "koutils": "../bower_components/koutils/dist",
+        "kounderscore": "../bower_components/kounderscore/dist/kounderscore",
 
         "mocha": "../bower_components/mocha/mocha",
         "should": "../bower_components/should/should",
