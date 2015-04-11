@@ -272,9 +272,9 @@ export function create<T, TKey>(setName: string, keyPropertyName: string, defaul
 
     result.localCount = result._size();
     result.remoteCount = ko.observable(-1);
-    result.count = ko.computed(() => result.remoteCount() === -1 ? result.localCount() : result.remoteCount());
+    result.count = ko.pureComputed(() => result.remoteCount() === -1 ? result.localCount() : result.remoteCount());
 
-    result.isSynchronized = ko.computed(() => result.localCount() === result.remoteCount());
+    result.isSynchronized = ko.pureComputed(() => result.localCount() === result.remoteCount());
 
     return result;
 }
@@ -525,10 +525,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     },
     /** Dispose and clean entity */
     disposeEntity: function (entity: any): void {
-        if (entity.subscription) {
-            entity.subscription.dispose();
-            delete entity.subscription;
-        }
+        mapping.disposeEntity(entity, this);
     },
 
     /** Get whether entity is attached or not */

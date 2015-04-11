@@ -181,7 +181,7 @@ export class FunctionFilter extends Filter {
 
         super(field, operator, value);
 
-        this.field = ko.computed(this.formatField, this);
+        this.field = ko.pureComputed(this.formatField, this);
     }
 
     public getItemField(item: any, field: string): any {

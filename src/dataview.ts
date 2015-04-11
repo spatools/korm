@@ -60,13 +60,13 @@ export function create<T, TKey>(dataSet: dataset.DataSet<T, TKey>, _query?: quer
         lastResult: ko.observableArray()
     };
 
-    var result = <any>ko.computed(function () {
+    var result = <any>ko.pureComputed(function () {
         if (self.query.pageSize() > 0 && !self.set.isSynchronized() && self.lastResult.size() > 0) {
             return self.lastResult();
         }
 
         return self.query.apply(self.set.toArray(), true);
-    }).extend({ cnotify: utils.arrayEquals, deferEvaluation: true });
+    }).extend({ notify: utils.arrayEquals });
 
     _.extend(result, self, dataViewFunctions);
 
