@@ -276,7 +276,7 @@ function updateRelations(model: any, data: any, config: Configuration, commit: b
 
 function updateRelationsRange(models: any[], datas: any[], config: Configuration, commit: boolean, store: boolean, dataSet: dataset.DataSet<any, any>): Promise<void> {
     var foreignSet, data, toAttach, remoteAttach, remoteAttachTo, relValue, relProp, promise: Promise<any>,
-        promises =  _.filterMap(config.relations, relation => {
+        promises = _.filterMap(config.relations, relation => {
             toAttach = [];
             remoteAttach = [];
             remoteAttachTo = [];
@@ -369,9 +369,9 @@ export function addMappingProperties<T, TKey>(model: any, dataSet: dataset.DataS
         }
 
         return false;
-    }).extend({ cnotify: "primitive" });
+    });
 
-    model.IsRemoved = ko.computed(() => model.EntityState() === entityStates.removed).extend({ cnotify: "primitive" });
+    model.IsRemoved = ko.pureComputed(() => model.EntityState() === entityStates.removed);
 
     return model;
 }
@@ -477,6 +477,37 @@ export function resetEntity<T, TKey>(entity: any, dataSet: dataset.DataSet<T, TK
     return entity;
 }
 
+/** Dispose each computeds properties in entities */
+export function disposeEntity<T, TKey>(entity: any, dataSet: dataset.DataSet<T, TKey>): void {
+    var config = getMappingConfiguration(entity, dataSet),
+        relationProperty;
+
+    if (entity.subscription) {
+        entity.subscription.dispose();
+        delete entity.subscription;
+    }
+
+    _.each(config.relations, relation => {
+        relationProperty = entity[relation.propertyName];
+
+        if (relationProperty && relationProperty.dispose) {
+            relationProperty.dispose();
+            delete entity[relation.propertyName];
+        }
+    });
+
+    entity.HasChanges.dispose();
+    entity.IsRemoved.dispose();
+    entity.ChangeTracker.dispose();
+
+    delete entity._lastData;
+    delete entity.EntityState;
+    delete entity.IsSubmitting;
+    delete entity.HasChanges;
+    delete entity.IsRemoved;
+    delete entity.ChangeTracker;
+}
+
 //#endregion
 
 //#region Mapping Methods
@@ -541,7 +572,7 @@ export function mapEntitiesToJS<T, TKey>(entities: any[], keepState: boolean, da
     if (entities.length > 0) {
         var defaultRules = getMappingConfiguration(null, dataSet).rules;
 
-        _.each(entities, (entity) => {
+        _.each(entities, entity => {
             var config = getMappingConfiguration(entity, dataSet);
             ensureRules(config, entity, keepState);
         });
