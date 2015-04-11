@@ -12,7 +12,7 @@ import dataview = require("./dataview");
 import adapters = require("./adapters");
 import query = require("./query");
 import guid = require("./guid");
-import underscore = require("koutils/underscore");
+import ko_ = require("kounderscore");
 import utils = require("koutils/utils");
 
 //#region Interfaces 
@@ -872,6 +872,6 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     }
 };
 
-_.extend(dataSetFunctions, underscore.objects, underscore.collections);
+ko_.addTo(dataSetFunctions, "object");
 
 //#endregion

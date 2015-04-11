@@ -29,10 +29,11 @@
     "test"
   ],
   "dependencies": {
-    "koutils": "^0.1.7",
+    "koutils": "^1.0.1",
+    "kounderscore": "^0.1.1",
     "komoment": "^0.1.1",
     "promise-ext": "^0.3.6",
-    "jquery": "^1.9.1",
+    "jquery": ">=1.9.1",
     "knockout.mapping": "SteveSanderson/knockout.mapping"
   },
   "devDependencies": {

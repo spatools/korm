@@ -8,7 +8,7 @@ import Promise = require("promise");
 import mapping = require("./mapping");
 import dataset = require("./dataset");
 import query = require("./query");
-import underscore = require("koutils/underscore");
+import ko_ = require("kounderscore");
 import utils = require("koutils/utils");
 
 //#region Interfaces 
@@ -141,8 +141,6 @@ var dataViewFunctions: DataViewFunctions<any, any> = {
     }
 };
 
-// to replace in underscore when Typescript issue resolved 1.0?
-// Typescript issue: remove underscore from define if no amd-dependency
-underscore.addToPrototype(dataViewFunctions);
+ko_.addTo(dataViewFunctions);
 
 //#endregion

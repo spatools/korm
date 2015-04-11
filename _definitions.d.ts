@@ -3,6 +3,7 @@
 /// <reference path="typings/underscore/underscore.d.ts" />
 /// <reference path="typings/moment/moment.d.ts" />
 /// <reference path="bower_components/koutils/dist/koutils.d.ts" />
+/// <reference path="bower_components/kounderscore/dist/kounderscore.d.ts" />
 /// <reference path="bower_components/promise-ext/src/promise.d.ts" />
 
 interface IDBEvent extends Event {

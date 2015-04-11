@@ -1,5 +1,4 @@
 /// <reference path="../_definitions.d.ts" />
-/// <amd-dependency path="koutils/underscore" />
 
 import _ = require("underscore");
 import utils = require("koutils/utils");
@@ -21,7 +20,6 @@ export function generate(): string {
 export function generateTemp(): string {
     return "00000000-0000-0000-0000-" + utils.str_pad((lastEmpty++).toString(), 12, "0");
 }
-
 
 export function generateMin(): string {
     return Math.floor(Math.random() * 3656158440062975).toString(36); // 10 character uuid 3656158440062975 = 36^10 - 1
