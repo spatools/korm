@@ -1,6 +1,6 @@
 /// <reference path="../_definitions.d.ts" />
 /// <amd-dependency path="koutils/extenders" />
-define(["require", "exports", "knockout", "underscore", "promise/extensions", "./mapping", "./dataview", "./guid", "koutils/underscore", "koutils/utils", "koutils/extenders"], function (require, exports, ko, _, promiseExt, mapping, dataview, guid, underscore, utils) {
+define(["require", "exports", "knockout", "underscore", "promise/extensions", "./mapping", "./dataview", "./guid", "kounderscore", "koutils/utils", "koutils/extenders"], function (require, exports, ko, _, promiseExt, mapping, dataview, guid, ko_, utils) {
     //#endregion
     //#region Private Methods
     function _createOnStateChanged(dataset, entity) {
@@ -60,8 +60,8 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
         _.extend(result, dataSetFunctions);
         result.localCount = result._size();
         result.remoteCount = ko.observable(-1);
-        result.count = ko.computed(function () { return result.remoteCount() === -1 ? result.localCount() : result.remoteCount(); });
-        result.isSynchronized = ko.computed(function () { return result.localCount() === result.remoteCount(); });
+        result.count = ko.pureComputed(function () { return result.remoteCount() === -1 ? result.localCount() : result.remoteCount(); });
+        result.isSynchronized = ko.pureComputed(function () { return result.localCount() === result.remoteCount(); });
         return result;
     }
     exports.create = create;
@@ -261,10 +261,7 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
         },
         /** Dispose and clean entity */
         disposeEntity: function (entity) {
-            if (entity.subscription) {
-                entity.subscription.dispose();
-                delete entity.subscription;
-            }
+            mapping.disposeEntity(entity, this);
         },
         /** Get whether entity is attached or not */
         isAttached: function (entity) {
@@ -524,5 +521,6 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             return self.adapter.batch(self.setName, _changes).then(function () { return mapping.updateEntities(changes.added, [], false, false, true, self); }).then(function () { return self.storeRange(changes.added); }).then(function () { return mapping.updateEntities(changes.modified, [], false, false, true, self); }).then(function () { return self.storeRange(changes.modified); }).then(function () { return self.localstore.removeRange(self.setName, changes.removed); }).then(function () { return self.detachRange(_.map(changes.removed, self.getKey, self)); }).then(canceller, canceller);
         }
     };
-    _.extend(dataSetFunctions, underscore.objects, underscore.collections);
+    ko_.addTo(dataSetFunctions, "object");
 });
+//#endregion

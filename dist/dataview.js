@@ -1,6 +1,6 @@
 /// <reference path="../_definitions.d.ts" />
 /// <amd-dependency path="koutils/extenders" />
-define(["require", "exports", "knockout", "underscore", "promise", "./mapping", "./query", "koutils/underscore", "koutils/utils", "koutils/extenders"], function (require, exports, ko, _, Promise, mapping, query, underscore, utils) {
+define(["require", "exports", "knockout", "underscore", "promise", "./mapping", "./query", "kounderscore", "koutils/utils", "koutils/extenders"], function (require, exports, ko, _, Promise, mapping, query, ko_, utils) {
     //#endregion
     //#region Model
     /** Creates a data view for the given data set */
@@ -10,12 +10,12 @@ define(["require", "exports", "knockout", "underscore", "promise", "./mapping", 
             set: dataSet,
             lastResult: ko.observableArray()
         };
-        var result = ko.computed(function () {
+        var result = ko.pureComputed(function () {
             if (self.query.pageSize() > 0 && !self.set.isSynchronized() && self.lastResult.size() > 0) {
                 return self.lastResult();
             }
             return self.query.apply(self.set.toArray(), true);
-        }).extend({ cnotify: utils.arrayEquals, deferEvaluation: true });
+        }).extend({ notify: utils.arrayEquals });
         _.extend(result, self, dataViewFunctions);
         return result;
     }
@@ -73,7 +73,6 @@ define(["require", "exports", "knockout", "underscore", "promise", "./mapping", 
             return Promise.all(promises);
         }
     };
-    // to replace in underscore when Typescript issue resolved 1.0?
-    // Typescript issue: remove underscore from define if no amd-dependency
-    underscore.addToPrototype(dataViewFunctions);
+    ko_.addTo(dataViewFunctions);
 });
+//#endregion

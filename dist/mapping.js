@@ -279,8 +279,8 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
                 model.EntityState(0 /* unchanged */);
             }
             return false;
-        }).extend({ cnotify: "primitive" });
-        model.IsRemoved = ko.computed(function () { return model.EntityState() === 3 /* removed */; }).extend({ cnotify: "primitive" });
+        });
+        model.IsRemoved = ko.pureComputed(function () { return model.EntityState() === 3 /* removed */; });
         return model;
     }
     exports.addMappingProperties = addMappingProperties;
@@ -362,6 +362,31 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return entity;
     }
     exports.resetEntity = resetEntity;
+    /** Dispose each computeds properties in entities */
+    function disposeEntity(entity, dataSet) {
+        var config = getMappingConfiguration(entity, dataSet), relationProperty;
+        if (entity.subscription) {
+            entity.subscription.dispose();
+            delete entity.subscription;
+        }
+        _.each(config.relations, function (relation) {
+            relationProperty = entity[relation.propertyName];
+            if (relationProperty && relationProperty.dispose) {
+                relationProperty.dispose();
+                delete entity[relation.propertyName];
+            }
+        });
+        entity.HasChanges.dispose();
+        entity.IsRemoved.dispose();
+        entity.ChangeTracker.dispose();
+        delete entity._lastData;
+        delete entity.EntityState;
+        delete entity.IsSubmitting;
+        delete entity.HasChanges;
+        delete entity.IsRemoved;
+        delete entity.ChangeTracker;
+    }
+    exports.disposeEntity = disposeEntity;
     //#endregion
     //#region Mapping Methods
     function mapEntitiesFromJS(datas, initialState, expand, store, dataSet) {
@@ -428,3 +453,4 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     }
     exports.mapEntityToJSON = mapEntityToJSON;
 });
+//#endregion

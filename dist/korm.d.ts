@@ -70,7 +70,7 @@ import context = require("korm/context");
 import dataview = require("korm/dataview");
 import adapters = require("korm/adapters");
 import query = require("korm/query");
-export interface DataSet<T, TKey> extends KnockoutUnderscoreArrayFunctions<T>, KnockoutUnderscoreObjectsFunctions<T>, KnockoutObservable<Array<T>>, DataSetFunctions<T, TKey> {
+export interface DataSet<T, TKey> extends KnockoutUnderscoreArrayFunctions<T>, KnockoutUnderscoreObjectsFunctions<T>, KnockoutObservable<T[]>, DataSetFunctions<T, TKey> {
     setName: string;
     key: string;
     defaultType: string;
@@ -339,6 +339,8 @@ export function updateEntity<T, TKey>(entity: any, data: any, commit: boolean, e
 export function updateEntities<T, TKey>(entities: any[], datas: any[], commit: boolean, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T[]>;
 /** Reset specified entity with last remote data */
 export function resetEntity<T, TKey>(entity: any, dataSet: dataset.DataSet<T, TKey>): T;
+/** Dispose each computeds properties in entities */
+export function disposeEntity<T, TKey>(entity: any, dataSet: dataset.DataSet<T, TKey>): void;
 export function mapEntitiesFromJS<T, TKey>(datas: any[], initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T[]>;
 export function mapEntityFromJS<T, TKey>(data: any, initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T>;
 export function mapEntityToJS<T, TKey>(entity: any, keepState: boolean, dataSet: dataset.DataSet<T, TKey>): any;
@@ -455,9 +457,9 @@ export class ODataQuery {
     /** Creates an OData Query string (includes $filter, $skip, $top, $orderby) */
     toQueryString(): string;
     /** Returns a function for local filtering */
-    toLocalFilter(): (item: any) => boolean;
+    toLocalFilter(): (item) => boolean;
     /** Returns a function for local sorting */
-    toLocalSorting(): (item1: any, item2: any) => number;
+    toLocalSorting(): (item1, item2) => number;
     /** Filter specified array */
     applyFilters<T>(array: T[]): T[];
     /** Sort specified array */

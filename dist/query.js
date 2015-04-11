@@ -148,7 +148,7 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             this._field = utils.createObservable(field);
             this.args = utils.createObservable(args, []);
             _super.call(this, field, operator, value);
-            this.field = ko.computed(this.formatField, this);
+            this.field = ko.pureComputed(this.formatField, this);
         }
         FunctionFilter.prototype.getItemField = function (item, field) {
             var _itemField = _super.prototype.getItemField.call(this, item, this._field()), args = ko.toJS(this.args), _itemFieldString = (_itemField || "").toString(), _itemFieldDate = _itemField && moment.isMoment(_itemField.date) ? _itemField.date : moment(_itemFieldString), _itemFieldNumber = parseFloat(_itemFieldString), argString = (args[0] || "").toString();
