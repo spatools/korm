@@ -496,6 +496,12 @@ export function disposeEntity<T, TKey>(entity: any, dataSet: dataset.DataSet<T, 
         }
     });
 
+    _.each(config.actions, action => {
+        if (entity[action]) {
+            delete entity[action];
+        }
+    });
+
     entity.HasChanges.dispose();
     entity.IsRemoved.dispose();
     entity.ChangeTracker.dispose();
