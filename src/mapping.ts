@@ -513,7 +513,7 @@ export function disposeEntity<T, TKey>(entity: any, dataSet: dataset.DataSet<T, 
 //#region Mapping Methods
 
 export function mapEntitiesFromJS<T, TKey>(datas: any[], initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T[]> {
-    if (datas.length === 0) {
+    if (!datas || datas.length === 0) {
         return Promise.resolve(datas);
     }
 
@@ -569,18 +569,18 @@ export function mapEntityToJS<T, TKey>(entity: any, keepState: boolean, dataSet:
 }
 
 export function mapEntitiesToJS<T, TKey>(entities: any[], keepState: boolean, dataSet: dataset.DataSet<T, TKey>): any {
-    if (entities.length > 0) {
-        var defaultRules = getMappingConfiguration(null, dataSet).rules;
-
-        _.each(entities, entity => {
-            var config = getMappingConfiguration(entity, dataSet);
-            ensureRules(config, entity, keepState);
-        });
-
-        return koMapping.toJS(entities, defaultRules);
+    if (!entities || entities.length === 0) {
+        return entities;
     }
 
-    return entities;
+    var defaultRules = getMappingConfiguration(null, dataSet).rules;
+
+    _.each(entities, entity => {
+        var config = getMappingConfiguration(entity, dataSet);
+        ensureRules(config, entity, keepState);
+    });
+
+    return koMapping.toJS(entities, defaultRules);
 }
 
 export function mapEntityFromJSON<T, TKey>(json: string, initialState: entityStates, expand: boolean, store: boolean, dataSet: dataset.DataSet<T, TKey>): Promise<T> {
