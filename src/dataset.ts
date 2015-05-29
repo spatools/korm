@@ -792,7 +792,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
                         if (self.context.autoLazyLoading === true)
                             return mapping.refreshRelations(entity, self);
                     })
-                    .then(canceller, canceller)
+                    .then(canceller, err => { canceller(); throw err; })
                     .then(() => entity);
             }
         }
@@ -811,7 +811,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
             return self.adapter.put(self.setName, key, self.toJS(entity))
                 .then(data => mapping.updateEntity(entity, data, false, false, true, self))
                 .then(() => self.store(entity))
-                .then(canceller, canceller);
+                .then(canceller, err => { canceller(); throw err; });
         }
 
         return Promise.resolve(entity);
@@ -819,21 +819,20 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     /** Deletes an Item from the Server (internal use) */
     _remoteRemove: function (entity: any): Promise<any> {
         var self = <DataSet<any, any>>this,
-            key = self.getKey(entity),
-            canceller = () => { entity.IsSubmitting(false); };
+            key = self.getKey(entity);
 
         if (entity.IsSubmitting() === false) {
             entity.IsSubmitting(true);
 
             return self.adapter.remove(self.setName, key)
                 .then(() => self.localstore.remove(self.setName, key))
-                .then(() => self.detach(entity))
-                .then(canceller, canceller);
+                .then(() => self.detach(entity));
         }
 
         return Promise.resolve(null);
     },
 
+    /** Submit a batch of changes (internal use) */
     _remoteBatch: function (changes: DataSetChanges<any>): Promise<void> {
         changes.added = changes.added || [];
         changes.modified = changes.modified || [];
@@ -846,7 +845,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
             return Promise.resolve(null);
         }
 
-        var canceller = function() { _.each(all, entity => { entity.IsSubmitting(false); }); },
+        var canceller = () => { _.each(all, e => { e.IsSubmitting && e.IsSubmitting(false); }); },
             _changes = {
                 added: mapping.mapEntitiesToJS(changes.added, false, self),
                 modified: mapping.mapEntitiesToJS(changes.modified, false, self),
@@ -865,7 +864,7 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
             .then(() => self.localstore.removeRange(self.setName, changes.removed))
             .then(() => self.detachRange(_.map(changes.removed, self.getKey, self)))
 
-            .then(canceller, canceller);
+            .then(canceller, err => { canceller(); throw err; });
     }
 };
 
