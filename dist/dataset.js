@@ -471,7 +471,10 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
                     }).then(function () {
                         if (self.context.autoLazyLoading === true)
                             return mapping.refreshRelations(entity, self);
-                    }).then(canceller, canceller).then(function () { return entity; });
+                    }).then(canceller, function (err) {
+                        canceller();
+                        throw err;
+                    }).then(function () { return entity; });
                 }
             }
             return Promise.resolve(entity);
@@ -483,21 +486,23 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             };
             if (entity.IsSubmitting() === false) {
                 entity.IsSubmitting(true);
-                return self.adapter.put(self.setName, key, self.toJS(entity)).then(function (data) { return mapping.updateEntity(entity, data, false, false, true, self); }).then(function () { return self.store(entity); }).then(canceller, canceller);
+                return self.adapter.put(self.setName, key, self.toJS(entity)).then(function (data) { return mapping.updateEntity(entity, data, false, false, true, self); }).then(function () { return self.store(entity); }).then(canceller, function (err) {
+                    canceller();
+                    throw err;
+                });
             }
             return Promise.resolve(entity);
         },
         /** Deletes an Item from the Server (internal use) */
         _remoteRemove: function (entity) {
-            var self = this, key = self.getKey(entity), canceller = function () {
-                entity.IsSubmitting(false);
-            };
+            var self = this, key = self.getKey(entity);
             if (entity.IsSubmitting() === false) {
                 entity.IsSubmitting(true);
-                return self.adapter.remove(self.setName, key).then(function () { return self.localstore.remove(self.setName, key); }).then(function () { return self.detach(entity); }).then(canceller, canceller);
+                return self.adapter.remove(self.setName, key).then(function () { return self.localstore.remove(self.setName, key); }).then(function () { return self.detach(entity); });
             }
             return Promise.resolve(null);
         },
+        /** Submit a batch of changes (internal use) */
         _remoteBatch: function (changes) {
             changes.added = changes.added || [];
             changes.modified = changes.modified || [];
@@ -507,8 +512,8 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
                 return Promise.resolve(null);
             }
             var canceller = function () {
-                _.each(all, function (entity) {
-                    entity.IsSubmitting(false);
+                _.each(all, function (e) {
+                    e.IsSubmitting && e.IsSubmitting(false);
                 });
             }, _changes = {
                 added: mapping.mapEntitiesToJS(changes.added, false, self),
@@ -518,7 +523,10 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
             _.each(all, function (entity) {
                 entity.IsSubmitting(true);
             });
-            return self.adapter.batch(self.setName, _changes).then(function () { return mapping.updateEntities(changes.added, [], false, false, true, self); }).then(function () { return self.storeRange(changes.added); }).then(function () { return mapping.updateEntities(changes.modified, [], false, false, true, self); }).then(function () { return self.storeRange(changes.modified); }).then(function () { return self.localstore.removeRange(self.setName, changes.removed); }).then(function () { return self.detachRange(_.map(changes.removed, self.getKey, self)); }).then(canceller, canceller);
+            return self.adapter.batch(self.setName, _changes).then(function () { return mapping.updateEntities(changes.added, [], false, false, true, self); }).then(function () { return self.storeRange(changes.added); }).then(function () { return mapping.updateEntities(changes.modified, [], false, false, true, self); }).then(function () { return self.storeRange(changes.modified); }).then(function () { return self.localstore.removeRange(self.setName, changes.removed); }).then(function () { return self.detachRange(_.map(changes.removed, self.getKey, self)); }).then(canceller, function (err) {
+                canceller();
+                throw err;
+            });
         }
     };
     ko_.addTo(dataSetFunctions, "object");

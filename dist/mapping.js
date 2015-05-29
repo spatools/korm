@@ -376,6 +376,11 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
                 delete entity[relation.propertyName];
             }
         });
+        _.each(config.actions, function (action) {
+            if (entity[action]) {
+                delete entity[action];
+            }
+        });
         entity.HasChanges.dispose();
         entity.IsRemoved.dispose();
         entity.ChangeTracker.dispose();
@@ -390,7 +395,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     //#endregion
     //#region Mapping Methods
     function mapEntitiesFromJS(datas, initialState, expand, store, dataSet) {
-        if (datas.length === 0) {
+        if (!datas || datas.length === 0) {
             return Promise.resolve(datas);
         }
         var config, model, result = _.map(datas, function (data) {
@@ -431,15 +436,15 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     }
     exports.mapEntityToJS = mapEntityToJS;
     function mapEntitiesToJS(entities, keepState, dataSet) {
-        if (entities.length > 0) {
-            var defaultRules = getMappingConfiguration(null, dataSet).rules;
-            _.each(entities, function (entity) {
-                var config = getMappingConfiguration(entity, dataSet);
-                ensureRules(config, entity, keepState);
-            });
-            return koMapping.toJS(entities, defaultRules);
+        if (!entities || entities.length === 0) {
+            return entities;
         }
-        return entities;
+        var defaultRules = getMappingConfiguration(null, dataSet).rules;
+        _.each(entities, function (entity) {
+            var config = getMappingConfiguration(entity, dataSet);
+            ensureRules(config, entity, keepState);
+        });
+        return koMapping.toJS(entities, defaultRules);
     }
     exports.mapEntitiesToJS = mapEntitiesToJS;
     function mapEntityFromJSON(json, initialState, expand, store, dataSet) {
