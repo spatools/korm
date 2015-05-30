@@ -3,7 +3,6 @@
 import ko = require("knockout");
 import _ = require("underscore");
 import utils = require("koutils/utils");
-import promiseExt = require("promise/extensions");
 
 import context = require("./context");
 import query = require("./query");
@@ -38,9 +37,20 @@ export function getDefaultStore(context: context.DataContext): IDataStore {
     return new MemoryStore(context);
 }
 
-export function getStore(name: string, context: context.DataContext): Promise<IDataStore> {
-    return Promise.resolve<IDataStoreConstructor>(stores[name] || promiseExt.module("korm/stores/" + name)).then<IDataStore>(Store => {
-        stores[name] = Store;
-        return new Store(context);
+function loadStore(name: string): Promise<IDataStoreConstructor> {
+    if (stores[name]) {
+        return Promise.resolve(stores[name]);
+    }
+
+    return new Promise((resolve, reject) => {
+        require(["korm/stores/" + name], result => {
+            var Store = result[0];
+            stores[name] = Store;
+            resolve(Store);
+        }, reject);
     });
+}
+
+export function getStore(name: string, context: context.DataContext): Promise<IDataStore> {
+    return loadStore(name).then(Store => new Store(context));
 }

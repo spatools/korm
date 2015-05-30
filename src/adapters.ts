@@ -1,6 +1,5 @@
 /// <reference path="../_definitions.d.ts" />
 
-import promiseExt = require("promise/extensions");
 import utils = require("koutils/utils");
 import query = require("./query");
 import ODataAdapter = require("./adapters/odata");
@@ -36,9 +35,20 @@ export function getDefaultAdapter(): IAdapter {
     return new ODataAdapter();
 }
 
-export function getAdapter(name: string): Promise<IAdapter> {
-    return Promise.resolve<IAdapterConstructor>(adapters[name] || promiseExt.module("korm/adapters/" + name)).then<IAdapter>(Adapter => {
-        adapters[name] = Adapter;
-        return new Adapter();
+function loadAdapter(name: string): Promise<IAdapterConstructor> {
+    if (adapters[name]) {
+        return Promise.resolve(adapters[name]);
+    }
+
+    return new Promise((resolve, reject) => {
+        require(["korm/adapters/" + name], result => {
+            var Adapter = result[0];
+            adapters[name] = Adapter;
+            resolve(Adapter);
+        }, reject);
     });
+}
+
+export function getAdapter(name: string): Promise<IAdapter> {
+    return loadAdapter(name).then(Adapter => new Adapter());
 }
