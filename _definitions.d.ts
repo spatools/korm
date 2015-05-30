@@ -6,6 +6,7 @@
 /// <reference path="bower_components/koutils/dist/koutils.d.ts" />
 /// <reference path="bower_components/kounderscore/dist/kounderscore.d.ts" />
 /// <reference path="bower_components/promizr/promise.d.ts" />
+/// <reference path="bower_components/promizr/promizr.d.ts" />
 
 interface IDBEvent extends Event {
     target: IDBEventTarget;

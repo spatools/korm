@@ -1,6 +1,7 @@
 /// <reference path="../_definitions.d.ts" />
 
 import utils = require("koutils/utils");
+import promizr = require("promizr");
 import query = require("./query");
 import ODataAdapter = require("./adapters/odata");
 
@@ -40,12 +41,9 @@ function loadAdapter(name: string): Promise<IAdapterConstructor> {
         return Promise.resolve(adapters[name]);
     }
 
-    return new Promise((resolve, reject) => {
-        require(["korm/adapters/" + name], result => {
-            var Adapter = result[0];
-            adapters[name] = Adapter;
-            resolve(Adapter);
-        }, reject);
+    return promizr.module<IAdapterConstructor>(`korm/adapters/${name}`).then(Adapter => {
+        adapters[name] = Adapter;
+        return Adapter;
     });
 }
 

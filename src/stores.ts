@@ -3,6 +3,7 @@
 import ko = require("knockout");
 import _ = require("underscore");
 import utils = require("koutils/utils");
+import promizr = require("promizr");
 
 import context = require("./context");
 import query = require("./query");
@@ -42,12 +43,9 @@ function loadStore(name: string): Promise<IDataStoreConstructor> {
         return Promise.resolve(stores[name]);
     }
 
-    return new Promise((resolve, reject) => {
-        require(["korm/stores/" + name], result => {
-            var Store = result[0];
-            stores[name] = Store;
-            resolve(Store);
-        }, reject);
+    return promizr.module<IDataStoreConstructor>(`korm/stores/${name}`).then(Store => {
+        stores[name] = Store;
+        return Store;
     });
 }
 
