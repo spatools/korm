@@ -3,7 +3,6 @@
 
 import ko = require("knockout");
 import _ = require("underscore");
-import promiseExt = require("promise/extensions");
 
 import mapping = require("./mapping");
 import stores = require("./stores");
@@ -198,13 +197,16 @@ export interface DataSetFunctions<T, TKey> {
 function _createOnStateChanged(dataset: DataSet<any, any>, entity: any): (newState: mapping.entityStates) => void {
     return (newState: mapping.entityStates) => {
         if (newState === mapping.entityStates.modified) {
-            promiseExt.timeout().then(() => {
+            setTimeout(() => {
                 dataset.store(entity);
                 dataset._remoteUpdate(entity);
-            });
+            }, 1);
         }
         else if (newState === mapping.entityStates.removed) {
-            promiseExt.timeout(100).then(() => dataset._remoteRemove(entity)); //hack : updates before removes
+            setTimeout(() => {
+                //hack : updates before removes
+                dataset._remoteRemove(entity);
+            }, 100);
         }
     };
 }
@@ -365,7 +367,8 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     sync: function (query?: query.ODataQuery): Promise<void> {
         var self = <DataSet<any, any>>this;
         return self.adapter.getAll(self.setName, query)
-            .then<void>(result => self.storeRange(result.data));
+            .then(result => self.storeRange(result.data))
+            .then(() => { return; });
     },
 
     /** Get relation by ensuring using specific remote action and not filter */
