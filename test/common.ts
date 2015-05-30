@@ -5,7 +5,7 @@
 
 import ko = require("knockout");
 import _ = require("underscore");
-import promiseExt = require("promise/extensions");
+import promizr = require("promizr");
 import commonHelpers = require("./helpers/common");
 
 import context = require("../src/context");
@@ -283,7 +283,7 @@ export class FakeDataAdapter implements adapters.IAdapter {
         });
     }
     public action(controller: string, action: string, parameters: any, id?: any): Promise<any> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             if (this.actionCallback)
                 this.actionCallback(action, parameters, id);
         });
@@ -294,7 +294,7 @@ export class FakeDataAdapter implements adapters.IAdapter {
     //#region Private Methods
 
     private getStore(controller: string): Promise<any> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             if (!this.memory[controller])
                 this.memory[controller] = {};
 
@@ -316,7 +316,7 @@ export class FakeDataAdapter implements adapters.IAdapter {
 
             promises = _.filterMap(conf.relations, (relation: mapping.Relation) => {
                 if (_.contains(expands, relation.propertyName)) {
-                    return promiseExt.timeout().then(() => {
+                    return promizr.timeout().then(() => {
                         var q = relation.toQuery(item, dataset, this.context.getSet(relation.controllerName));
                         return this.getAll(relation.controllerName, q).then(entities => {
                             item[relation.propertyName] = entities;

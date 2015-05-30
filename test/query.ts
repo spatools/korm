@@ -5,7 +5,6 @@
 
 import ko = require("knockout");
 import _ = require("underscore");
-import promiseExt = require("promise/extensions");
 import guidHelpers = require("./helpers/guid");
 
 import query = require("../src/query");

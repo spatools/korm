@@ -13,7 +13,8 @@ requirejs.config({
         "knockout.mapping": "../bower_components/knockout.mapping/knockout.mapping",
         "underscore": "../bower_components/underscore/underscore",
         "moment": "../bower_components/moment/moment",
-        "promise": "../bower_components/promise-ext/dist/promise",
+        "promise": "../bower_components/promizr/polyfill",
+        "promizr": "../bower_components/promizr/promizr",
         "koutils": "../bower_components/koutils/dist",
         "kounderscore": "../bower_components/kounderscore/dist/kounderscore",
 

@@ -5,7 +5,6 @@
 
 import ko = require("knockout");
 import _ = require("underscore");
-import promiseExt = require("promise/extensions");
 import utils = require("koutils/utils");
 
 import common = require("./common");
