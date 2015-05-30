@@ -36,6 +36,7 @@
     "knockout.mapping": "SteveSanderson/knockout.mapping"
   },
   "devDependencies": {
+    "promizr": "^0.1.3",
     "mocha": "~1.17.1",
     "should": "3.1.2",
     "sinon": "http://sinonjs.org/releases/sinon-1.8.1.js"
