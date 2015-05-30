@@ -1,18 +1,21 @@
 /// <reference path="../_definitions.d.ts" />
 /// <amd-dependency path="koutils/extenders" />
-define(["require", "exports", "knockout", "underscore", "promise/extensions", "./mapping", "./dataview", "./guid", "kounderscore", "koutils/utils", "koutils/extenders"], function (require, exports, ko, _, promiseExt, mapping, dataview, guid, ko_, utils) {
+define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview", "./guid", "kounderscore", "koutils/utils", "koutils/extenders"], function (require, exports, ko, _, mapping, dataview, guid, ko_, utils) {
     //#endregion
     //#region Private Methods
     function _createOnStateChanged(dataset, entity) {
         return function (newState) {
             if (newState === 2 /* modified */) {
-                promiseExt.timeout().then(function () {
+                setTimeout(function () {
                     dataset.store(entity);
                     dataset._remoteUpdate(entity);
-                });
+                }, 1);
             }
             else if (newState === 3 /* removed */) {
-                promiseExt.timeout(100).then(function () { return dataset._remoteRemove(entity); }); //hack : updates before removes
+                setTimeout(function () {
+                    //hack : updates before removes
+                    dataset._remoteRemove(entity);
+                }, 100);
             }
         };
     }
@@ -137,7 +140,9 @@ define(["require", "exports", "knockout", "underscore", "promise/extensions", ".
         /** Synchronize data store with remote source content */
         sync: function (query) {
             var self = this;
-            return self.adapter.getAll(self.setName, query).then(function (result) { return self.storeRange(result.data); });
+            return self.adapter.getAll(self.setName, query).then(function (result) { return self.storeRange(result.data); }).then(function () {
+                return;
+            });
         },
         /** Get relation by ensuring using specific remote action and not filter */
         refreshRelation: function (entity, propertyName, mode, query, nostore) {

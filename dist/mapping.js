@@ -201,7 +201,9 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
                 }
             }
         });
-        return Promise.all(promises);
+        return Promise.all(promises).then(function () {
+            return;
+        });
     }
     function updateRelationsRange(models, datas, config, commit, store, dataSet) {
         var foreignSet, data, toAttach, remoteAttach, remoteAttachTo, relValue, relProp, promise, promises = _.filterMap(config.relations, function (relation) {
@@ -238,7 +240,9 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
             }
             return promise;
         });
-        return Promise.all(promises);
+        return Promise.all(promises).then(function () {
+            return;
+        });
     }
     //#endregion
     //#region Public Methods

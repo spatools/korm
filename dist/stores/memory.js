@@ -1,5 +1,5 @@
 /// <reference path="../../_definitions.d.ts" />
-define(["require", "exports", "underscore", "promise/extensions", "../mapping"], function (require, exports, _, promiseExt, mapping) {
+define(["require", "exports", "underscore", "promizr", "../mapping"], function (require, exports, _, promizr, mapping) {
     var MemoryStore = (function () {
         function MemoryStore(context) {
             this.memory = {};
@@ -8,13 +8,13 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
         //#region Public Methods
         MemoryStore.prototype.reset = function () {
             var _this = this;
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 _this.memory = {};
             });
         };
         MemoryStore.prototype.getAll = function (setName, query) {
             var self = this;
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 var result = _.values(self.getMemorySet(setName));
                 if (query) {
                     result = query.apply(result);
@@ -30,7 +30,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
         };
         MemoryStore.prototype.getOne = function (setName, key, query) {
             var _this = this;
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 var table = _this.getMemorySet(setName), item = table[key];
                 if (item && query) {
                     if (query.selects.size() > 0) {
@@ -48,14 +48,14 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
         };
         MemoryStore.prototype.update = function (setName, item) {
             var _this = this;
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 var table = _this.getMemorySet(setName), key = _this.getKey(setName, item);
                 table[key] = _this.toJS(setName, item);
             });
         };
         MemoryStore.prototype.remove = function (setName, key) {
             var _this = this;
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 var table = _this.getMemorySet(setName);
                 delete table[key];
             });
@@ -65,7 +65,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
         };
         MemoryStore.prototype.updateRange = function (setName, items) {
             var _this = this;
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 var table = _this.getMemorySet(setName), key;
                 _.each(items, function (item) {
                     key = _this.getKey(setName, item);
@@ -75,7 +75,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
         };
         MemoryStore.prototype.removeRange = function (setName, keys) {
             var _this = this;
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 var table = _this.getMemorySet(setName);
                 _.each(keys, function (key) {
                     delete table[key];
@@ -110,7 +110,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
             var _this = this;
             var dataset = _set || this.context.getSet(setName), conf = mapping.getMappingConfiguration(item, dataset), promises = _.filterMap(conf.relations, function (relation) {
                 if (_.contains(expands, relation.propertyName)) {
-                    return promiseExt.timeout().then(function () {
+                    return promizr.timeout().then(function () {
                         var q = relation.toQuery(item, dataset, _this.context.getSet(relation.controllerName));
                         return _this.getAll(relation.controllerName, q).then(function (entities) {
                             if (relation.type === 1 /* one */)

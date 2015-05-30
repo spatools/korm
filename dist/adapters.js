@@ -1,5 +1,5 @@
 /// <reference path="../_definitions.d.ts" />
-define(["require", "exports", "promise/extensions", "./adapters/odata"], function (require, exports, promiseExt, ODataAdapter) {
+define(["require", "exports", "promizr", "./adapters/odata"], function (require, exports, promizr, ODataAdapter) {
     var adapters = {
         odata: ODataAdapter
     };
@@ -7,11 +7,17 @@ define(["require", "exports", "promise/extensions", "./adapters/odata"], functio
         return new ODataAdapter();
     }
     exports.getDefaultAdapter = getDefaultAdapter;
-    function getAdapter(name) {
-        return Promise.resolve(adapters[name] || promiseExt.module("korm/adapters/" + name)).then(function (Adapter) {
+    function loadAdapter(name) {
+        if (adapters[name]) {
+            return Promise.resolve(adapters[name]);
+        }
+        return promizr.module("korm/adapters/" + name).then(function (Adapter) {
             adapters[name] = Adapter;
-            return new Adapter();
+            return Adapter;
         });
+    }
+    function getAdapter(name) {
+        return loadAdapter(name).then(function (Adapter) { return new Adapter(); });
     }
     exports.getAdapter = getAdapter;
 });

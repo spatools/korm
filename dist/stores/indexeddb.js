@@ -1,5 +1,5 @@
 /// <reference path="../../_definitions.d.ts" />
-define(["require", "exports", "underscore", "promise/extensions", "../mapping", "../query"], function (require, exports, _, promiseExt, mapping, _query) {
+define(["require", "exports", "underscore", "promizr", "../mapping", "../query"], function (require, exports, _, promizr, mapping, _query) {
     var cachePrefix = "__KORM_DATA__", win = window;
     var IndexedDBStore = (function () {
         function IndexedDBStore(context) {
@@ -173,7 +173,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
                 return Promise.resolve(undefined);
             }
             this.indexes = {};
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 _.each(_this.context.getSets(), function (dataset) {
                     var conf = mapping.getMappingConfiguration(null, dataset);
                     _.each(conf.relations, function (relation) {
@@ -293,7 +293,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping", 
             var _this = this;
             var dataset = _set || this.context.getSet(setName), conf = mapping.getMappingConfiguration(item, dataset), promises = _.filterMap(conf.relations, function (relation) {
                 if (_.contains(expands, relation.propertyName)) {
-                    return promiseExt.timeout().then(function () {
+                    return promizr.timeout().then(function () {
                         var q = relation.toQuery(item, dataset, _this.context.getSet(relation.controllerName));
                         return _this.getAll(relation.controllerName, q).then(function (entities) {
                             if (relation.type === 1 /* one */)

@@ -1,5 +1,5 @@
 /// <reference path="../../_definitions.d.ts" />
-define(["require", "exports", "underscore", "promise/extensions", "../mapping"], function (require, exports, _, promiseExt, mapping) {
+define(["require", "exports", "underscore", "promizr", "../mapping"], function (require, exports, _, promizr, mapping) {
     var cachePrefix = "__SPA_DATA__";
     var LocalStorageStore = (function () {
         function LocalStorageStore(context) {
@@ -7,8 +7,10 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
         }
         //#region Public Methods
         LocalStorageStore.prototype.reset = function () {
-            return promiseExt.forEach(this.context.getSets(), function (dataset) {
-                localStorage.removeItem(cachePrefix + dataset.setName);
+            return promizr.eachSeries(this.context.getSets(), function (dataset) {
+                return promizr.timeout().then(function () {
+                    localStorage.removeItem(cachePrefix + dataset.setName);
+                });
             });
         };
         LocalStorageStore.prototype.getAll = function (setName, query) {
@@ -88,12 +90,12 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
         //#endregion
         //#region Private Methods
         LocalStorageStore.prototype.getStoreTable = function (setName) {
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 return JSON.parse(localStorage.getItem(cachePrefix + setName)) || {};
             });
         };
         LocalStorageStore.prototype.setStoreTable = function (setName, setValue) {
-            return promiseExt.timeout().then(function () {
+            return promizr.timeout().then(function () {
                 localStorage.setItem(cachePrefix + setName, JSON.stringify(setValue));
             });
         };
@@ -118,7 +120,7 @@ define(["require", "exports", "underscore", "promise/extensions", "../mapping"],
             var _this = this;
             var dataset = _set || this.context.getSet(setName), conf = mapping.getMappingConfiguration(item, dataset), promises = _.filterMap(conf.relations, function (relation) {
                 if (_.contains(expands, relation.propertyName)) {
-                    return promiseExt.timeout().then(function () {
+                    return promizr.timeout().then(function () {
                         var q = relation.toQuery(item, dataset, _this.context.getSet(relation.controllerName));
                         return _this.getAll(relation.controllerName, q).then(function (entities) {
                             if (relation.type === 1 /* one */)

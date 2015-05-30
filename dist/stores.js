@@ -1,5 +1,5 @@
 /// <reference path="../_definitions.d.ts" />
-define(["require", "exports", "promise/extensions", "./stores/memory"], function (require, exports, promiseExt, MemoryStore) {
+define(["require", "exports", "promizr", "./stores/memory"], function (require, exports, promizr, MemoryStore) {
     var stores = {
         "memory": MemoryStore
     };
@@ -7,11 +7,17 @@ define(["require", "exports", "promise/extensions", "./stores/memory"], function
         return new MemoryStore(context);
     }
     exports.getDefaultStore = getDefaultStore;
-    function getStore(name, context) {
-        return Promise.resolve(stores[name] || promiseExt.module("korm/stores/" + name)).then(function (Store) {
+    function loadStore(name) {
+        if (stores[name]) {
+            return Promise.resolve(stores[name]);
+        }
+        return promizr.module("korm/stores/" + name).then(function (Store) {
             stores[name] = Store;
-            return new Store(context);
+            return Store;
         });
+    }
+    function getStore(name, context) {
+        return loadStore(name).then(function (Store) { return new Store(context); });
     }
     exports.getStore = getStore;
 });
