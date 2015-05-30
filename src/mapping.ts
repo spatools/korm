@@ -271,7 +271,9 @@ function updateRelations(model: any, data: any, config: Configuration, commit: b
             }
         });
 
-    return Promise.all(promises);
+    return Promise.all(promises).then(() => {
+        return;
+    });
 }
 
 function updateRelationsRange(models: any[], datas: any[], config: Configuration, commit: boolean, store: boolean, dataSet: dataset.DataSet<any, any>): Promise<void> {
@@ -318,7 +320,7 @@ function updateRelationsRange(models: any[], datas: any[], config: Configuration
             return promise;
         });
 
-    return Promise.all(promises);
+    return Promise.all(promises).then(() => { return; });
 }
 
 //#endregion
