@@ -1,7 +1,7 @@
 /// <reference path="../../_definitions.d.ts" />
 
 import _ = require("underscore");
-import promiseExt = require("promise/extensions");
+import promizr = require("promizr");
 import utils = require("koutils/utils");
 
 import stores = require("../stores");
@@ -221,7 +221,7 @@ class IndexedDBStore implements stores.IDataStore {
         }
 
         this.indexes = {};
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             _.each(this.context.getSets(), dataset => {
                 var conf = mapping.getMappingConfiguration(null, dataset);
 
@@ -394,7 +394,7 @@ class IndexedDBStore implements stores.IDataStore {
 
             promises = _.filterMap(conf.relations, (relation: mapping.Relation) => {
                 if (_.contains(expands, relation.propertyName)) {
-                    return promiseExt.timeout().then(() => {
+                    return promizr.timeout().then(() => {
                         var q = relation.toQuery(item, dataset, this.context.getSet(relation.controllerName));
 
                         return this.getAll(relation.controllerName, q).then(entities => {

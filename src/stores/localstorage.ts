@@ -1,7 +1,7 @@
 /// <reference path="../../_definitions.d.ts" />
 
 import _ = require("underscore");
-import promiseExt = require("promise/extensions");
+import promizr = require("promizr");
 import utils = require("koutils/utils");
 
 import stores = require("../stores");
@@ -22,8 +22,10 @@ class LocalStorageStore implements stores.IDataStore {
     //#region Public Methods
 
     reset(): Promise<void> {
-        return promiseExt.forEach(this.context.getSets(), dataset => {
-            localStorage.removeItem(cachePrefix + dataset.setName);
+        return promizr.eachSeries(this.context.getSets(), dataset => {
+            return promizr.timeout().then(() => {
+                localStorage.removeItem(cachePrefix + dataset.setName);
+            });
         });
     }
 
@@ -112,12 +114,12 @@ class LocalStorageStore implements stores.IDataStore {
     //#region Private Methods
 
     private getStoreTable(setName: string): Promise<any> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             return JSON.parse(localStorage.getItem(cachePrefix + setName)) || {};
         });
     }
     private setStoreTable(setName: string, setValue: any): Promise<void> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             localStorage.setItem(cachePrefix + setName, JSON.stringify(setValue));
         });
     }
@@ -146,7 +148,7 @@ class LocalStorageStore implements stores.IDataStore {
 
             promises = _.filterMap(conf.relations, (relation: mapping.Relation) => {
                 if (_.contains(expands, relation.propertyName)) {
-                    return promiseExt.timeout().then(() => {
+                    return promizr.timeout().then(() => {
                         var q = relation.toQuery(item, dataset, this.context.getSet(relation.controllerName));
 
                         return this.getAll(relation.controllerName, q).then(entities => {

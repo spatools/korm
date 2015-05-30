@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../_definitions.d.ts" />
 
 import _ = require("underscore");
-import promiseExt = require("promise/extensions");
+import promizr = require("promizr");
 
 import stores = require("../stores");
 import context = require("../context");
@@ -21,14 +21,14 @@ class MemoryStore implements stores.IDataStore {
     //#region Public Methods
 
     reset(): Promise<void> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             this.memory = {};
         });
     }
 
     getAll(setName: string, query?: _query.ODataQuery): Promise<any[]> {
         var self = this;
-        return promiseExt.timeout().then<any[]>(function (): any {
+        return promizr.timeout().then<any[]>(function (): any {
             var result: any[] = _.values(self.getMemorySet(setName));
 
             if (query) {
@@ -47,7 +47,7 @@ class MemoryStore implements stores.IDataStore {
         });
     }
     getOne(setName: string, key: any, query?: _query.ODataQuery): Promise<any> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             var table = this.getMemorySet(setName),
                 item = table[key];
 
@@ -69,7 +69,7 @@ class MemoryStore implements stores.IDataStore {
         return this.update(setName, item);
     }
     update(setName: string, item: any): Promise<void> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             var table = this.getMemorySet(setName),
                 key = this.getKey(setName, item);
 
@@ -77,7 +77,7 @@ class MemoryStore implements stores.IDataStore {
         });
     }
     remove(setName: string, key: any): Promise<void> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             var table = this.getMemorySet(setName);
             delete table[key];
         });
@@ -87,7 +87,7 @@ class MemoryStore implements stores.IDataStore {
         return this.updateRange(setName, items);
     }
     updateRange(setName: string, items: any[]): Promise<void> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             var table = this.getMemorySet(setName), key;
 
             _.each(items, item => {
@@ -97,7 +97,7 @@ class MemoryStore implements stores.IDataStore {
         });
     }
     removeRange(setName: string, keys: any[]): Promise<void> {
-        return promiseExt.timeout().then(() => {
+        return promizr.timeout().then(() => {
             var table = this.getMemorySet(setName);
             _.each(keys, key => { delete table[key]; });
         });
@@ -137,7 +137,7 @@ class MemoryStore implements stores.IDataStore {
 
             promises = _.filterMap(conf.relations, (relation: mapping.Relation) => {
                 if (_.contains(expands, relation.propertyName)) {
-                    return promiseExt.timeout().then(() => {
+                    return promizr.timeout().then(() => {
                         var q = relation.toQuery(item, dataset, this.context.getSet(relation.controllerName));
 
                         return this.getAll(relation.controllerName, q).then(entities => {
