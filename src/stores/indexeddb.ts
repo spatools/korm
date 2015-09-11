@@ -13,9 +13,9 @@ import _query = require("../query");
 var cachePrefix = "__KORM_DATA__",
     win = <any>window,
 
-    indexedDB = win.indexedDB || win.mozIndexedDB || win.webkitIndexedDB || win.msIndexedDB || win.indexedDBShim,
-    IDBTransaction = win.IDBTransaction || win.webkitIDBTransaction || win.msIDBTransaction || (win.indexedDBShim && win.indexedDBShim.modules.IDBTransaction),
-    IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.msIDBKeyRange || (win.indexedDBShim && win.indexedDBShim.modules.IDBKeyRange);
+    indexedDB = win.indexedDB || win.mozIndexedDB || win.webkitIndexedDB || win.msIndexedDB || win.shimIndexedDB,
+    IDBTransaction = win.IDBTransaction || win.webkitIDBTransaction || win.msIDBTransaction || (win.shimIndexedDB && win.shimIndexedDB.modules.IDBTransaction),
+    IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.msIDBKeyRange || (win.shimIndexedDB && win.shimIndexedDB.modules.IDBKeyRange);
 
 class IndexedDBStore implements stores.IDataStore {
     private database: string = "__KORM_DATA__";
