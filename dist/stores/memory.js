@@ -77,9 +77,7 @@ define(["require", "exports", "underscore", "promizr", "../mapping"], function (
             var _this = this;
             return promizr.timeout().then(function () {
                 var table = _this.getMemorySet(setName);
-                _.each(keys, function (key) {
-                    delete table[key];
-                });
+                _.each(keys, function (key) { delete table[key]; });
             });
         };
         //#endregion
@@ -113,7 +111,7 @@ define(["require", "exports", "underscore", "promizr", "../mapping"], function (
                     return promizr.timeout().then(function () {
                         var q = relation.toQuery(item, dataset, _this.context.getSet(relation.controllerName));
                         return _this.getAll(relation.controllerName, q).then(function (entities) {
-                            if (relation.type === 1 /* one */)
+                            if (relation.type === mapping.relationTypes.one)
                                 entities = entities[0];
                             item[relation.propertyName] = entities;
                         });

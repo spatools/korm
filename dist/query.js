@@ -1,5 +1,5 @@
 /// <reference path="../_definitions.d.ts" />
-var __extends = this.__extends || function (d, b) {
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
@@ -320,7 +320,9 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
                     filter = new FunctionFilter(args[0], args[1]);
                     break;
                 case 3:
-                    filter = _.isArray(args[2]) ? new FunctionFilter(args[0], args[1], args[2]) : new Filter(args[0], args[1], args[2]);
+                    filter = _.isArray(args[2]) ?
+                        new FunctionFilter(args[0], args[1], args[2]) :
+                        new Filter(args[0], args[1], args[2]);
                     break;
                 case 4:
                     filter = new FunctionFilter(args[0], args[1], args[2], args[3]);

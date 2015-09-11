@@ -3,7 +3,7 @@ define(["require", "exports", "koutils/utils"], function (require, exports, util
     var lastEmpty = 0, tempRegex = /00000000-0000-0000-0000-\d{12}/, guidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
     exports.empty = "00000000-0000-0000-0000-000000000000";
     function S4() {
-        return utils.str_pad(Math.floor(Math.random() * 0x10000).toString(16), 4, "0");
+        return utils.str_pad(Math.floor(Math.random() * 0x10000 /* 65536 */).toString(16), 4, "0");
     }
     function generate() {
         return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());

@@ -69,7 +69,7 @@ define(["require", "exports", "knockout", "underscore", "promise", "./mapping", 
         saveChanges: function () {
             /// <summary>Commits all Pending Operations (PUT, DELETE, POST)</summary>
             /// <returnss type="$.Deffered">return a deffered object for async operations</returnss>
-            var changes = this.getChanges(), set = this.set, states = mapping.entityStates, promises = _.union(_.map(changes[1 /* added */], function (e) { return set._remoteCreate(e); }), _.map(changes[2 /* modified */], function (e) { return set._remoteUpdate(e); }), _.map(changes[3 /* removed */], function (e) { return set._remoteRemove(e); }));
+            var changes = this.getChanges(), set = this.set, states = mapping.entityStates, promises = _.union(_.map(changes[states.added], function (e) { return set._remoteCreate(e); }), _.map(changes[states.modified], function (e) { return set._remoteUpdate(e); }), _.map(changes[states.removed], function (e) { return set._remoteRemove(e); }));
             return Promise.all(promises);
         }
     };

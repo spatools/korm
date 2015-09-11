@@ -5,13 +5,13 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
     //#region Private Methods
     function _createOnStateChanged(dataset, entity) {
         return function (newState) {
-            if (newState === 2 /* modified */) {
+            if (newState === mapping.entityStates.modified) {
                 setTimeout(function () {
                     dataset.store(entity);
                     dataset._remoteUpdate(entity);
                 }, 1);
             }
-            else if (newState === 3 /* removed */) {
+            else if (newState === mapping.entityStates.removed) {
                 setTimeout(function () {
                     //hack : updates before removes
                     dataset._remoteRemove(entity);
@@ -23,7 +23,7 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         if (dataset.context.buffer === false) {
             entity.EntityState.subscribe(_createOnStateChanged(dataset, entity));
         }
-        if (entity.EntityState() === 1 /* added */) {
+        if (entity.EntityState() === mapping.entityStates.added) {
             if (dataset.context.buffer === false)
                 return dataset._remoteCreate(entity);
         }
@@ -40,13 +40,16 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
                 current = query.applyFilters(current);
             var report = utils.arrayCompare(_.map(current, dataset.getKey, dataset), _.map(result.data, dataset.getKey, dataset));
             if (report.removed.length > 0) {
-                rmDfd = dataset.localstore.removeRange(dataset.setName, report.removed).then(function () { return dataset.detachRange(report.removed); });
+                rmDfd = dataset.localstore.removeRange(dataset.setName, report.removed)
+                    .then(function () { return dataset.detachRange(report.removed); });
             }
         }
         return Promise.resolve(rmDfd).then(function () {
             if (result.count >= 0 && (!query || query.filters.size() === 0))
                 dataset.remoteCount(result.count);
-            return isArray ? dataset.attachOrUpdateRange(result.data, false, !!query && query.expands.size() > 0) : dataset.attachOrUpdate(result.data, false, !!query && query.expands.size() > 0);
+            return isArray ?
+                dataset.attachOrUpdateRange(result.data, false, !!query && query.expands.size() > 0) :
+                dataset.attachOrUpdate(result.data, false, !!query && query.expands.size() > 0);
         });
     }
     //#endregion
@@ -114,10 +117,12 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
                 mode = self.refreshMode;
             }
             if (mode === "remote") {
-                return self.adapter.getAll(self.setName, query).then(function (result) { return _updateDataSet(self, result, query); });
+                return self.adapter.getAll(self.setName, query)
+                    .then(function (result) { return _updateDataSet(self, result, query); });
             }
             else {
-                return self.localstore.getAll(self.setName, query).then(function (entities) { return self.attachOrUpdateRange(entities, false, !!query && query.expands.size() > 0, false); });
+                return self.localstore.getAll(self.setName, query)
+                    .then(function (entities) { return self.attachOrUpdateRange(entities, false, !!query && query.expands.size() > 0, false); });
             }
         },
         /** Load an entity by id from the remote source */
@@ -140,9 +145,9 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         /** Synchronize data store with remote source content */
         sync: function (query) {
             var self = this;
-            return self.adapter.getAll(self.setName, query).then(function (result) { return self.storeRange(result.data); }).then(function () {
-                return;
-            });
+            return self.adapter.getAll(self.setName, query)
+                .then(function (result) { return self.storeRange(result.data); })
+                .then(function () { return; });
         },
         /** Get relation by ensuring using specific remote action and not filter */
         refreshRelation: function (entity, propertyName, mode, query, nostore) {
@@ -161,10 +166,12 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             }
             var foreignSet = self.context.getSet(relation.controllerName);
             if (mode === "remote") {
-                return self.adapter.getRelation(self.setName, propertyName, self.getKey(entity), query).then(function (result) { return nostore ? foreignSet.attachOrUpdateRange(result.data, false, !!query && query.expands.size() > 0, false) : _updateDataSet(foreignSet, result, query); });
+                return self.adapter.getRelation(self.setName, propertyName, self.getKey(entity), query)
+                    .then(function (result) { return nostore ? foreignSet.attachOrUpdateRange(result.data, false, !!query && query.expands.size() > 0, false) : _updateDataSet(foreignSet, result, query); });
             }
             else {
-                return self.localstore.getAll(foreignSet.setName, query).then(function (entities) { return foreignSet.attachOrUpdateRange(entities, false, !!query && query.expands.size() > 0, false); });
+                return self.localstore.getAll(foreignSet.setName, query)
+                    .then(function (entities) { return foreignSet.attachOrUpdateRange(entities, false, !!query && query.expands.size() > 0, false); });
             }
         },
         /** Execute action on remote source */
@@ -185,12 +192,12 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         },
         /** Add entity to dataset, if buffer is false, entity will be instantly post on the server */
         add: function (entity) {
-            var states = mapping.entityStates, defaultState = 1 /* added */;
+            var states = mapping.entityStates, defaultState = states.added;
             if (!entity.EntityState) {
                 mapping.addMappingProperties(entity, this);
             }
-            else if (this.isAttached(entity) && entity.EntityState() === 3 /* removed */) {
-                defaultState = entity.HasChanges() ? 2 /* modified */ : 0 /* unchanged */;
+            else if (this.isAttached(entity) && entity.EntityState() === states.removed) {
+                defaultState = entity.HasChanges() ? states.modified : states.unchanged;
             }
             entity.EntityState(defaultState);
             if (!this.getKey(entity))
@@ -200,14 +207,14 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         /** Add entities to dataset, if buffer is false, entities will be instantly post on the server */
         addRange: function (entities) {
             var _this = this;
-            var states = mapping.entityStates, defaultState = 1 /* added */, state;
+            var states = mapping.entityStates, defaultState = states.added, state;
             _.each(entities, function (entity) {
                 state = defaultState;
                 if (!entity.EntityState) {
                     mapping.addMappingProperties(entity, _this);
                 }
-                else if (_this.isAttached(entity) && entity.EntityState() === 3 /* removed */) {
-                    state = entity.HasChanges() ? 2 /* modified */ : 0 /* unchanged */;
+                else if (_this.isAttached(entity) && entity.EntityState() === states.removed) {
+                    state = entity.HasChanges() ? states.modified : states.unchanged;
                 }
                 entity.EntityState(state);
                 if (!_this.getKey(entity))
@@ -218,7 +225,7 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         /** Update entity on dataset, if buffer is false, entity will be instantly put on the server */
         update: function (entity) {
             if (this.isAttached(entity)) {
-                entity.EntityState(2 /* modified */);
+                entity.EntityState(mapping.entityStates.modified);
                 return this.store(entity);
             }
             return Promise.resolve(entity);
@@ -228,7 +235,7 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             var self = this, toStore = [];
             _.each(entities, function (entity) {
                 if (self.isAttached(entity)) {
-                    entity.EntityState(2 /* modified */);
+                    entity.EntityState(mapping.entityStates.modified);
                     toStore.push(entity);
                 }
             });
@@ -237,10 +244,10 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         /** Remove entity from dataset, if buffer is false, entity will be instantly deleted on the server */
         remove: function (entity) {
             var state = entity.EntityState && entity.EntityState();
-            if (_.isUndefined(state) || state === 1 /* added */)
+            if (_.isUndefined(state) || state === mapping.entityStates.added)
                 this.detach(entity);
             else {
-                entity.EntityState(3 /* removed */);
+                entity.EntityState(mapping.entityStates.removed);
                 return this.store(entity);
             }
             return Promise.resolve(entity);
@@ -250,10 +257,10 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             var self = this, toStore = [];
             _.each(entities, function (entity) {
                 var state = entity.EntityState && entity.EntityState();
-                if (_.isUndefined(state) || state === 1 /* added */)
+                if (_.isUndefined(state) || state === mapping.entityStates.added)
                     self.detach(entity);
                 else {
-                    entity.EntityState(3 /* removed */);
+                    entity.EntityState(mapping.entityStates.removed);
                     toStore.push(entity);
                 }
             });
@@ -278,10 +285,13 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             var self = this, table = self(), key = self.getKey(entity);
             if (!self.isAttached(entity)) {
                 self.valueWillMutate();
-                return Promise.resolve(store && self.localstore.add(self.setName, entity)).then(function () {
+                return Promise.resolve(store && self.localstore.add(self.setName, entity))
+                    .then(function () {
                     table[key] = entity;
                     return _initAttachedEntity(self, entity);
-                }).then(function () { return self.valueHasMutated(); }).then(function () { return entity; });
+                })
+                    .then(function () { return self.valueHasMutated(); })
+                    .then(function () { return entity; });
             }
             return Promise.resolve(entity);
         },
@@ -302,11 +312,10 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
                 }
                 return false;
             });
-            return Promise.all(promises).then(function () {
-                toUpdate && store && self.localstore.addRange(self.setName, toStore);
-            }).then(function () {
-                toUpdate && self.valueHasMutated();
-            }).then(function () { return entities; });
+            return Promise.all(promises)
+                .then(function () { toUpdate && store && self.localstore.addRange(self.setName, toStore); })
+                .then(function () { toUpdate && self.valueHasMutated(); })
+                .then(function () { return entities; });
         },
         /** Stop an entity from being tracked by the dataSet */
         detach: function (entity) {
@@ -343,9 +352,12 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             if (store === void 0) { store = true; }
             var self = this, existing = self.findByKey(self.getKey(data));
             if (!existing) {
-                return self.fromJS(data, commit === true ? 1 /* added */ : 0 /* unchanged */, expand, store).then(function (entity) { return self.attach(entity, store); });
+                return self.fromJS(data, commit === true ? mapping.entityStates.added : mapping.entityStates.unchanged, expand, store)
+                    .then(function (entity) { return self.attach(entity, store); });
             }
-            return mapping.updateEntity(existing, data, commit, expand, store, self).then(function () { return store && self.store(existing); }).then(function () { return existing; });
+            return mapping.updateEntity(existing, data, commit, expand, store, self)
+                .then(function () { return store && self.store(existing); })
+                .then(function () { return existing; });
         },
         /** Attach or update entities if existing with current data and commit changes if commit is set to true */
         attachOrUpdateRange: function (data, commit, expand, store) {
@@ -363,14 +375,18 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
                     toAttach.push(item);
                 }
             });
-            return mapping.updateEntities(toUpdate, toUpdateData, commit, expand, store, self).then(function (result) {
+            return mapping.updateEntities(toUpdate, toUpdateData, commit, expand, store, self)
+                .then(function (result) {
                 toUpdate = result;
                 if (store)
                     return self.storeRange(result);
-            }).then(function () { return self.fromJSRange(toAttach, commit === true ? 1 /* added */ : 0 /* unchanged */, expand, store); }).then(function (result) {
+            })
+                .then(function () { return self.fromJSRange(toAttach, commit === true ? mapping.entityStates.added : mapping.entityStates.unchanged, expand, store); })
+                .then(function (result) {
                 toAttach = result;
                 return self.attachRange(result, store);
-            }).then(function () { return _.union(toAttach, toUpdate); });
+            })
+                .then(function () { return _.union(toAttach, toUpdate); });
             //return self.fromJSRange(toAttach, commit === true ? mapping.entityStates.added : mapping.entityStates.unchanged, expand, store).then(result => { toAttach = result; })
             //    .then(() => mapping.updateEntities(toUpdate, toUpdateData, commit, expand, store, self)).then(result => { toUpdate = result; })
             //    .then(() => store && self.storeRange(toUpdate))
@@ -380,14 +396,14 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         /** Store entity to local store without attaching to datacontext */
         store: function (entity) {
             if (_.isUndefined(entity.EntityState))
-                entity.EntityState = 0 /* unchanged */;
+                entity.EntityState = mapping.entityStates.unchanged;
             return this.localstore.update(this.setName, entity).then(function () { return entity; });
         },
         /** Store entities to local store without attaching to datacontext */
         storeRange: function (entities) {
             _.each(entities, function (entity) {
                 if (_.isUndefined(entity.EntityState))
-                    entity.EntityState = 0 /* unchanged */;
+                    entity.EntityState = mapping.entityStates.unchanged;
             });
             return this.localstore.updateRange(this.setName, entities).then(function () { return entities; });
         },
@@ -410,19 +426,19 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         fromJSRange: function (data, state, expand, store) {
             if (expand === void 0) { expand = true; }
             if (store === void 0) { store = true; }
-            return mapping.mapEntitiesFromJS(data, state || 0 /* unchanged */, expand, store, this);
+            return mapping.mapEntitiesFromJS(data, state || mapping.entityStates.unchanged, expand, store, this);
         },
         /** Instanciate an entity from a JS object */
         fromJS: function (data, state, expand, store) {
             if (expand === void 0) { expand = true; }
             if (store === void 0) { store = true; }
-            return mapping.mapEntityFromJS(data, state || 0 /* unchanged */, expand, store, this);
+            return mapping.mapEntityFromJS(data, state || mapping.entityStates.unchanged, expand, store, this);
         },
         /** Instanciate an entity from a JSON string */
         fromJSON: function (json, state, expand, store) {
             if (expand === void 0) { expand = true; }
             if (store === void 0) { store = true; }
-            return mapping.mapEntityFromJSON(json, state || 0 /* unchanged */, expand, store, this);
+            return mapping.mapEntityFromJSON(json, state || mapping.entityStates.unchanged, expand, store, this);
         },
         /** Get a report of changes in the dataSet */
         getChanges: function (entities) {
@@ -436,11 +452,11 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         saveEntity: function (entity) {
             var self = this, state = entity.EntityState(), states = mapping.entityStates;
             switch (state) {
-                case 1 /* added */:
+                case states.added:
                     return self._remoteCreate(entity);
-                case 2 /* modified */:
+                case states.modified:
                     return self._remoteUpdate(entity);
-                case 3 /* removed */:
+                case states.removed:
                     return self._remoteRemove(entity);
             }
             return Promise.resolve(entity);
@@ -458,43 +474,43 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         },
         /** Submits an Entity to the Server (internal use) */
         _remoteCreate: function (entity) {
-            var self = this, oldkey = self.getKey(entity), canceller = function () {
-                entity.IsSubmitting(false);
-            };
-            if (entity.EntityState() === 1 /* added */) {
+            var self = this, oldkey = self.getKey(entity), canceller = function () { entity.IsSubmitting(false); };
+            if (entity.EntityState() === mapping.entityStates.added) {
                 if (entity.IsSubmitting() === false) {
                     entity.IsSubmitting(true);
-                    return self.adapter.post(self.setName, self.toJS(entity)).then(function (data) { return mapping.updateEntity(entity, data, false, false, true, self); }).then(function () {
+                    return self.adapter.post(self.setName, self.toJS(entity))
+                        .then(function (data) { return mapping.updateEntity(entity, data, false, false, true, self); })
+                        .then(function () {
                         var key = self.getKey(entity), table;
                         if (oldkey !== key) {
                             table = self();
                             self.valueWillMutate();
                             table[key] = entity;
                             delete table[oldkey];
-                            return self.localstore.remove(self.setName, oldkey).then(function () { return self.localstore.add(self.setName, entity); }).then(function () { return self.valueHasMutated(); });
+                            return self.localstore.remove(self.setName, oldkey)
+                                .then(function () { return self.localstore.add(self.setName, entity); })
+                                .then(function () { return self.valueHasMutated(); });
                         }
-                    }).then(function () {
+                    })
+                        .then(function () {
                         if (self.context.autoLazyLoading === true)
                             return mapping.refreshRelations(entity, self);
-                    }).then(canceller, function (err) {
-                        canceller();
-                        throw err;
-                    }).then(function () { return entity; });
+                    })
+                        .then(canceller, function (err) { canceller(); throw err; })
+                        .then(function () { return entity; });
                 }
             }
             return Promise.resolve(entity);
         },
         /** Updates an Item to the Server (internal use */
         _remoteUpdate: function (entity) {
-            var self = this, key = self.getKey(entity), canceller = function () {
-                entity.IsSubmitting(false);
-            };
+            var self = this, key = self.getKey(entity), canceller = function () { entity.IsSubmitting(false); };
             if (entity.IsSubmitting() === false) {
                 entity.IsSubmitting(true);
-                return self.adapter.put(self.setName, key, self.toJS(entity)).then(function (data) { return mapping.updateEntity(entity, data, false, false, true, self); }).then(function () { return self.store(entity); }).then(canceller, function (err) {
-                    canceller();
-                    throw err;
-                });
+                return self.adapter.put(self.setName, key, self.toJS(entity))
+                    .then(function (data) { return mapping.updateEntity(entity, data, false, false, true, self); })
+                    .then(function () { return self.store(entity); })
+                    .then(canceller, function (err) { canceller(); throw err; });
             }
             return Promise.resolve(entity);
         },
@@ -503,7 +519,9 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             var self = this, key = self.getKey(entity);
             if (entity.IsSubmitting() === false) {
                 entity.IsSubmitting(true);
-                return self.adapter.remove(self.setName, key).then(function () { return self.localstore.remove(self.setName, key); }).then(function () { return self.detach(entity); });
+                return self.adapter.remove(self.setName, key)
+                    .then(function () { return self.localstore.remove(self.setName, key); })
+                    .then(function () { return self.detach(entity); });
             }
             return Promise.resolve(null);
         },
@@ -516,22 +534,20 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             if (all.length === 0) {
                 return Promise.resolve(null);
             }
-            var canceller = function () {
-                _.each(all, function (e) {
-                    e.IsSubmitting && e.IsSubmitting(false);
-                });
-            }, _changes = {
+            var canceller = function () { _.each(all, function (e) { e.IsSubmitting && e.IsSubmitting(false); }); }, _changes = {
                 added: mapping.mapEntitiesToJS(changes.added, false, self),
                 modified: mapping.mapEntitiesToJS(changes.modified, false, self),
                 removed: mapping.mapEntitiesToJS(changes.removed, false, self)
             };
-            _.each(all, function (entity) {
-                entity.IsSubmitting(true);
-            });
-            return self.adapter.batch(self.setName, _changes).then(function () { return mapping.updateEntities(changes.added, [], false, false, true, self); }).then(function () { return self.storeRange(changes.added); }).then(function () { return mapping.updateEntities(changes.modified, [], false, false, true, self); }).then(function () { return self.storeRange(changes.modified); }).then(function () { return self.localstore.removeRange(self.setName, changes.removed); }).then(function () { return self.detachRange(_.map(changes.removed, self.getKey, self)); }).then(canceller, function (err) {
-                canceller();
-                throw err;
-            });
+            _.each(all, function (entity) { entity.IsSubmitting(true); });
+            return self.adapter.batch(self.setName, _changes)
+                .then(function () { return mapping.updateEntities(changes.added, [], false, false, true, self); })
+                .then(function () { return self.storeRange(changes.added); })
+                .then(function () { return mapping.updateEntities(changes.modified, [], false, false, true, self); })
+                .then(function () { return self.storeRange(changes.modified); })
+                .then(function () { return self.localstore.removeRange(self.setName, changes.removed); })
+                .then(function () { return self.detachRange(_.map(changes.removed, self.getKey, self)); })
+                .then(canceller, function (err) { canceller(); throw err; });
         }
     };
     ko_.addTo(dataSetFunctions, "object");

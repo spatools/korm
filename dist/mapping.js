@@ -39,11 +39,11 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         }
         Relation.prototype.toQuery = function (item, localSet, foreignSet) {
             var localProp, foreignProp;
-            if (this.type === 1 /* one */) {
+            if (this.type === relationTypes.one) {
                 localProp = this.foreignKey;
                 foreignProp = foreignSet.key;
             }
-            else if (this.type === 0 /* many */) {
+            else if (this.type === relationTypes.many) {
                 localProp = localSet.key;
                 foreignProp = this.foreignKey;
             }
@@ -192,11 +192,11 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
             relValue = data && data[relation.propertyName];
             if (relValue) {
                 switch (relation.type) {
-                    case 1 /* one */:
+                    case relationTypes.one:
                         return foreignSet.attachOrUpdate(relValue, commit, false, store);
-                    case 0 /* many */:
+                    case relationTypes.many:
                         return foreignSet.attachOrUpdateRange(relValue, commit, false, store);
-                    case 2 /* remote */:
+                    case relationTypes.remote:
                         return foreignSet.attachOrUpdateRange(relValue, commit, false, store).then(model[relation.propertyName]);
                 }
             }
@@ -216,13 +216,13 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
                 relValue = data[relation.propertyName];
                 if (relValue) {
                     switch (relation.type) {
-                        case 1 /* one */:
+                        case relationTypes.one:
                             toAttach.push(relValue);
                             break;
-                        case 0 /* many */:
+                        case relationTypes.many:
                             toAttach = _.union(toAttach, relValue);
                             break;
-                        case 2 /* remote */:
+                        case relationTypes.remote:
                             remoteAttach.push(relValue);
                             remoteAttachTo.push(model[relation.propertyName]);
                             break;
@@ -240,9 +240,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
             }
             return promise;
         });
-        return Promise.all(promises).then(function () {
-            return;
-        });
+        return Promise.all(promises).then(function () { return; });
     }
     //#endregion
     //#region Public Methods
@@ -253,14 +251,14 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     exports.getMappingConfiguration = getMappingConfiguration;
     /** Add mapping properties to an entity */
     function addMappingProperties(model, dataSet, config, initialState, data) {
-        if (initialState === void 0) { initialState = 0 /* unchanged */; }
+        if (initialState === void 0) { initialState = entityStates.unchanged; }
         if (data === void 0) { data = null; }
         if (model.EntityState) {
             throw new Error("Model already has mapping properties");
         }
         if (!config)
             config = getMappingConfiguration(model, dataSet);
-        var isModified = initialState !== 0 /* unchanged */, foreignSet;
+        var isModified = initialState !== entityStates.unchanged, foreignSet;
         _.each(config.actions, function (action) {
             model[action] = function (params) { return dataSet.executeAction(action, params, model); };
         });
@@ -275,16 +273,16 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         model.HasChanges = ko.computed(function () {
             var state = model.EntityState();
             if (model.ChangeTracker.hasChanges()) {
-                if (state === 0 /* unchanged */ && !model.IsSubmitting())
-                    model.EntityState(2 /* modified */);
+                if (state === entityStates.unchanged && !model.IsSubmitting())
+                    model.EntityState(entityStates.modified);
                 return true;
             }
-            if (state === 2 /* modified */) {
-                model.EntityState(0 /* unchanged */);
+            if (state === entityStates.modified) {
+                model.EntityState(entityStates.unchanged);
             }
             return false;
         });
-        model.IsRemoved = ko.pureComputed(function () { return model.EntityState() === 3 /* removed */; });
+        model.IsRemoved = ko.pureComputed(function () { return model.EntityState() === entityStates.removed; });
         return model;
     }
     exports.addMappingProperties = addMappingProperties;
@@ -312,7 +310,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     function updateEntity(entity, data, commit, expand, store, dataSet) {
         if (!data) {
             if (!commit) {
-                entity.EntityState(0 /* unchanged */);
+                entity.EntityState(entityStates.unchanged);
                 entity.ChangeTracker.reset();
             }
             return Promise.resolve(entity);
@@ -320,7 +318,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         var config = getMappingConfiguration(entity, dataSet), mappingRules = ensureRules(config, entity);
         koMapping.fromJS(data, mappingRules, entity);
         if (!commit) {
-            entity.EntityState(0 /* unchanged */);
+            entity.EntityState(entityStates.unchanged);
             entity.ChangeTracker.reset();
         }
         if (expand) {
@@ -334,7 +332,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         if (datas.length === 0) {
             if (!commit) {
                 _.each(entities, function (entity) {
-                    entity.EntityState(0 /* unchanged */);
+                    entity.EntityState(entityStates.unchanged);
                     entity.ChangeTracker.reset();
                 });
             }
@@ -347,7 +345,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
             mappingRules = ensureRules(config, entity);
             koMapping.fromJS(data, mappingRules, entity);
             if (!commit) {
-                entity.EntityState(0 /* unchanged */);
+                entity.EntityState(entityStates.unchanged);
                 entity.ChangeTracker.reset();
             }
         });
@@ -361,7 +359,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     function resetEntity(entity, dataSet) {
         var config = getMappingConfiguration(entity, dataSet), mappingRules = ensureRules(config, entity);
         koMapping.fromJS(entity._lastData, mappingRules, entity);
-        entity.EntityState(0 /* unchanged */);
+        entity.EntityState(entityStates.unchanged);
         entity.ChangeTracker.reset();
         return entity;
     }
@@ -405,7 +403,7 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         var config, model, result = _.map(datas, function (data) {
             config = getMappingConfiguration(data, dataSet);
             model = config.model ? constructEntity(config.model) : {};
-            if (!_.isUndefined(data.EntityState) && initialState === 0 /* unchanged */) {
+            if (!_.isUndefined(data.EntityState) && initialState === entityStates.unchanged) {
                 initialState = data.EntityState;
                 delete data.EntityState;
             }
@@ -414,21 +412,21 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
             return model;
         });
         if (expand) {
-            return updateRelationsRange(result, datas, config, initialState !== 0 /* unchanged */, store, dataSet).then(function () { return result; });
+            return updateRelationsRange(result, datas, config, initialState !== entityStates.unchanged, store, dataSet).then(function () { return result; });
         }
         return Promise.resolve(result);
     }
     exports.mapEntitiesFromJS = mapEntitiesFromJS;
     function mapEntityFromJS(data, initialState, expand, store, dataSet) {
         var config = getMappingConfiguration(data, dataSet), model = config.model ? constructEntity(config.model) : {};
-        if (!_.isUndefined(data.EntityState) && initialState === 0 /* unchanged */) {
+        if (!_.isUndefined(data.EntityState) && initialState === entityStates.unchanged) {
             initialState = data.EntityState;
             delete data.EntityState;
         }
         koMapping.fromJS(data, config.rules, model);
         addMappingProperties(model, dataSet, config, initialState, data);
         if (expand) {
-            return updateRelations(model, data, config, initialState !== 0 /* unchanged */, store, dataSet).then(function () { return model; });
+            return updateRelations(model, data, config, initialState !== entityStates.unchanged, store, dataSet).then(function () { return model; });
         }
         return Promise.resolve(model);
     }

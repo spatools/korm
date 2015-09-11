@@ -1,16 +1,13 @@
 /// <reference path="../../_definitions.d.ts" />
 define(["require", "exports", "underscore", "promizr", "../mapping", "../query"], function (require, exports, _, promizr, mapping, _query) {
-    var cachePrefix = "__KORM_DATA__", win = window;
+    var cachePrefix = "__KORM_DATA__", win = window, indexedDB = win.indexedDB || win.mozIndexedDB || win.webkitIndexedDB || win.msIndexedDB || win.indexedDBShim, IDBTransaction = win.IDBTransaction || win.webkitIDBTransaction || win.msIDBTransaction || (win.indexedDBShim && win.indexedDBShim.modules.IDBTransaction), IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.msIDBKeyRange || (win.indexedDBShim && win.indexedDBShim.modules.IDBKeyRange);
     var IndexedDBStore = (function () {
         function IndexedDBStore(context) {
             this.database = "__KORM_DATA__";
             this.prefix = "";
-            this.version = 0;
+            this.version = 1;
             this.db = null;
             this.context = context;
-            win.indexedDB = win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB;
-            win.IDBTransaction = win.IDBTransaction || win.webkitIDBTransaction || win.msIDBTransaction;
-            win.IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.msIDBKeyRange;
         }
         //#region Public Methods
         IndexedDBStore.prototype.reset = function () {
@@ -177,13 +174,13 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
                 _.each(_this.context.getSets(), function (dataset) {
                     var conf = mapping.getMappingConfiguration(null, dataset);
                     _.each(conf.relations, function (relation) {
-                        if (relation.type === 1 /* one */) {
+                        if (relation.type === mapping.relationTypes.one) {
                             if (!_this.indexes[dataset.setName]) {
                                 _this.indexes[dataset.setName] = [];
                             }
                             _this.indexes[dataset.setName].push(relation.foreignKey);
                         }
-                        else if (relation.type === 0 /* many */) {
+                        else if (relation.type === mapping.relationTypes.many) {
                             if (!_this.indexes[relation.controllerName]) {
                                 _this.indexes[relation.controllerName] = [];
                             }
@@ -217,7 +214,11 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
             ids.push(key);
             // If no query or no filter
             if (query && query.filters.size() > 0) {
-                var operators = [op.equal, op.greaterThan, op.greaterThanOrEqual, op.lessThan, op.lessThanOrEqual], filters = query.filters.filter(function (f) { return !_.isString(f) && _.contains(ids, f.field()) && _.contains(operators, f.operator()); });
+                var operators = [op.equal, op.greaterThan, op.greaterThanOrEqual, op.lessThan, op.lessThanOrEqual], filters = query.filters.filter(function (f) {
+                    return !_.isString(f) &&
+                        _.contains(ids, f.field()) &&
+                        _.contains(operators, f.operator());
+                });
                 if (filters.length > 0) {
                     if (filters.length === 1) {
                         var filter = filters[0], operator = filter.operator();
@@ -296,7 +297,7 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
                     return promizr.timeout().then(function () {
                         var q = relation.toQuery(item, dataset, _this.context.getSet(relation.controllerName));
                         return _this.getAll(relation.controllerName, q).then(function (entities) {
-                            if (relation.type === 1 /* one */)
+                            if (relation.type === mapping.relationTypes.one)
                                 entities = entities[0];
                             item[relation.propertyName] = entities;
                         });

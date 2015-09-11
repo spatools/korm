@@ -25,9 +25,7 @@ define(["require", "exports", "jquery"], function (require, exports, $) {
                         return;
                     }
                     // Call AJAX again with original options
-                    setTimeout(function () {
-                        $.ajax(originalOptions);
-                    }, originalOptions.retryDelay || 0);
+                    setTimeout(function () { $.ajax(originalOptions); }, originalOptions.retryDelay || 0);
                 };
             });
             isInitialized = true;

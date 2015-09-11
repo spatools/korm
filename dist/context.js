@@ -34,9 +34,7 @@ define(["require", "exports", "underscore", "promise", "./mapping", "./stores", 
             return this.sets[name];
         };
         DataContext.prototype.reset = function () {
-            _.each(this.sets, function (dataset) {
-                dataset.reset();
-            });
+            _.each(this.sets, function (dataset) { dataset.reset(); });
         };
         DataContext.prototype.resetStore = function () {
             return this.store.reset();
@@ -44,9 +42,7 @@ define(["require", "exports", "underscore", "promise", "./mapping", "./stores", 
         /** Change refresh mode for all sets */
         DataContext.prototype.setRefreshMode = function (mode) {
             this.refreshMode = mode;
-            _.each(this.sets, function (dataset) {
-                dataset.refreshMode = mode;
-            });
+            _.each(this.sets, function (dataset) { dataset.refreshMode = mode; });
         };
         DataContext.prototype.setLocalStore = function (storeType) {
             var _this = this;
@@ -75,7 +71,8 @@ define(["require", "exports", "underscore", "promise", "./mapping", "./stores", 
         var context = new DataContext();
         context.buffer = buffer;
         context.autoLazyLoading = autoLazyLoading;
-        return Promise.all([context.setLocalStore(storeType), context.setAdapter(adapterType)]).then(function () { return context; });
+        return Promise.all([context.setLocalStore(storeType), context.setAdapter(adapterType)])
+            .then(function () { return context; });
     }
     exports.create = create;
 });
