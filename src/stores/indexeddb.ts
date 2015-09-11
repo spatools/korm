@@ -11,26 +11,25 @@ import mapping = require("../mapping");
 import _query = require("../query");
 
 var cachePrefix = "__KORM_DATA__",
-    win = <any>window;
+    win = <any>window,
+
+    indexedDB = win.indexedDB || win.mozIndexedDB || win.webkitIndexedDB || win.msIndexedDB || win.indexedDBShim,
+    IDBTransaction = win.IDBTransaction || win.webkitIDBTransaction || win.msIDBTransaction || (win.indexedDBShim && win.indexedDBShim.modules.IDBTransaction),
+    IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.msIDBKeyRange || (win.indexedDBShim && win.indexedDBShim.modules.IDBKeyRange);
 
 class IndexedDBStore implements stores.IDataStore {
     private database: string = "__KORM_DATA__";
     private prefix: string = "";
-    private version: number = 0;
+    private version: number = 1;
     private db: IDBDatabase = null;
     private indexes: { [key: string]: string[] };
     public context: context.DataContext;
 
     constructor(context: context.DataContext) {
         this.context = context;
-
-        win.indexedDB = win.indexedDB || win.webkitIndexedDB || win.mozIndexedDB || win.msIndexedDB;
-        win.IDBTransaction = win.IDBTransaction || win.webkitIDBTransaction || win.msIDBTransaction;
-        win.IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.msIDBKeyRange;
     }
 
     //#region Public Methods
-
 
     reset(): Promise<void> {
         if (this.db)
