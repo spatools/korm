@@ -1,6 +1,6 @@
 {
   "name": "korm",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Knockout ORM framework with REST service adapter and offline storage",
   "main": "dist/korm.js",
   "scripts": {
