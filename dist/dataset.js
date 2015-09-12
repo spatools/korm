@@ -224,22 +224,33 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
         },
         /** Update entity on dataset, if buffer is false, entity will be instantly put on the server */
         update: function (entity) {
+            if (!entity.EntityState) {
+                mapping.addMappingProperties(entity, this, null, mapping.entityStates.modified);
+                return this.attach(entity, true, true);
+            }
             if (this.isAttached(entity)) {
-                entity.EntityState(mapping.entityStates.modified);
+                entity.ChangeTracker.forceChange();
                 return this.store(entity);
             }
             return Promise.resolve(entity);
         },
         /** Update entities on dataset, if buffer is false, entities will be instantly put on the server */
         updateRange: function (entities) {
-            var self = this, toStore = [];
+            var self = this, toAttach = [], toStore = [];
             _.each(entities, function (entity) {
-                if (self.isAttached(entity)) {
-                    entity.EntityState(mapping.entityStates.modified);
+                if (!entity.EntityState) {
+                    mapping.addMappingProperties(entity, self, null, mapping.entityStates.modified);
+                    toAttach.push(entity);
+                }
+                else if (self.isAttached(entity)) {
+                    entity.ChangeTracker.forceChange();
                     toStore.push(entity);
                 }
             });
-            return self.storeRange(toStore).then(function () { return entities; });
+            return Promise.all([
+                this.storeRange(toStore),
+                this.attachRange(toAttach, true, true)
+            ]).then(function () { return entities; });
         },
         /** Remove entity from dataset, if buffer is false, entity will be instantly deleted on the server */
         remove: function (entity) {
@@ -280,10 +291,10 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             return !!this.findByKey(this.getKey(entity));
         },
         /** Attach an entity to the dataSet (commits immediately if buffer is false) */
-        attach: function (entity, store) {
+        attach: function (entity, store, force) {
             if (store === void 0) { store = true; }
             var self = this, table = self(), key = self.getKey(entity);
-            if (!self.isAttached(entity)) {
+            if (force || !self.isAttached(entity)) {
                 self.valueWillMutate();
                 return Promise.resolve(store && self.localstore.add(self.setName, entity))
                     .then(function () {
@@ -296,11 +307,11 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
             return Promise.resolve(entity);
         },
         /** Attach an Array of entities to the dataSet */
-        attachRange: function (entities, store) {
+        attachRange: function (entities, store, force) {
             if (store === void 0) { store = true; }
             var self = this, toUpdate = false, table = self(), key, promises = [];
             var toStore = _.filter(entities, function (entity) {
-                if (!self.isAttached(entity)) {
+                if (force || !self.isAttached(entity)) {
                     if (!toUpdate) {
                         self.valueWillMutate();
                         toUpdate = true;
