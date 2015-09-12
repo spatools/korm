@@ -469,8 +469,13 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
 
     /** Update entity on dataset, if buffer is false, entity will be instantly put on the server */
     update: function (entity: any): Promise<any> {
+        if (!entity.EntityState) {
+            mapping.addMappingProperties(entity, this, null, mapping.entityStates.modified);
+            return this.attach(entity, true, true);
+        }
+
         if (this.isAttached(entity)) {
-            entity.EntityState(mapping.entityStates.modified);
+            entity.ChangeTracker.forceChange();
             return this.store(entity);
         }
 
@@ -479,16 +484,24 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     /** Update entities on dataset, if buffer is false, entities will be instantly put on the server */
     updateRange: function (entities: any[]): Promise<any[]> {
         var self = <DataSet<any, any>>this,
+            toAttach = [],
             toStore = [];
 
         _.each(entities, entity => {
-            if (self.isAttached(entity)) {
-                entity.EntityState(mapping.entityStates.modified);
+            if (!entity.EntityState) {
+                mapping.addMappingProperties(entity, self, null, mapping.entityStates.modified);
+                toAttach.push(entity);
+            }
+            else if (self.isAttached(entity)) {
+                entity.ChangeTracker.forceChange();
                 toStore.push(entity);
             }
         });
 
-        return self.storeRange(toStore).then(() => entities);
+        return Promise.all([
+            this.storeRange(toStore),
+            this.attachRange(toAttach, true, true)
+        ]).then(() => entities);
     },
 
     /** Remove entity from dataset, if buffer is false, entity will be instantly deleted on the server */
@@ -536,12 +549,12 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         return !!this.findByKey(this.getKey(entity));
     },
     /** Attach an entity to the dataSet (commits immediately if buffer is false) */
-    attach: function (entity: any, store: boolean = true): Promise<any> {
+    attach: function (entity: any, store: boolean = true, force?: boolean): Promise<any> {
         var self = <DataSet<any, any>>this,
             table = self(),
             key = self.getKey(entity);
 
-        if (!self.isAttached(entity)) {
+        if (force || !self.isAttached(entity)) {
             self.valueWillMutate();
 
             return Promise.resolve(store && self.localstore.add(self.setName, entity))
@@ -556,14 +569,14 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
         return Promise.resolve(entity);
     },
     /** Attach an Array of entities to the dataSet */
-    attachRange: function (entities: any[], store: boolean = true): Promise<any[]> {
+    attachRange: function (entities: any[], store: boolean = true, force?: boolean): Promise<any[]> {
         var self = <DataSet<any, any>>this,
             toUpdate = false,
             table = self(),
             key, promises = [];
 
         var toStore = _.filter(entities, entity => {
-            if (!self.isAttached(entity)) {
+            if (force || !self.isAttached(entity)) {
                 if (!toUpdate) {
                     self.valueWillMutate();
                     toUpdate = true;
