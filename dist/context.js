@@ -1,4 +1,3 @@
-/// <reference path="../_definitions.d.ts" />
 define(["require", "exports", "underscore", "promise", "./mapping", "./stores", "./adapters", "./dataset"], function (require, exports, _, Promise, mapping, stores, adapters, dataset) {
     var DataContext = (function () {
         function DataContext() {
@@ -10,24 +9,19 @@ define(["require", "exports", "underscore", "promise", "./mapping", "./stores", 
             this.refreshMode = "remote";
             this.store = stores.getDefaultStore(this);
         }
-        /** Get Mapping Configuration for specified type */
         DataContext.prototype.getMappingConfiguration = function (type) {
             return this.mapping.getConfiguration(type);
         };
-        /** Add a mapping configuration to this data context */
         DataContext.prototype.addMappingConfiguration = function (config) {
             this.mapping.addConfiguration(config);
             return this;
         };
-        /** Get all sets defined in current context */
         DataContext.prototype.getSets = function () {
             return _.values(this.sets);
         };
-        /** Get set from name */
         DataContext.prototype.getSet = function (name) {
             return this.sets[name];
         };
-        /** Add a new Data Set to current Data Context */
         DataContext.prototype.addSet = function (name, keyProperty, defaultType) {
             if (!this.sets[name])
                 this[name] = this.sets[name] = dataset.create(name, keyProperty, defaultType, this);
@@ -39,7 +33,6 @@ define(["require", "exports", "underscore", "promise", "./mapping", "./stores", 
         DataContext.prototype.resetStore = function () {
             return this.store.reset();
         };
-        /** Change refresh mode for all sets */
         DataContext.prototype.setRefreshMode = function (mode) {
             this.refreshMode = mode;
             _.each(this.sets, function (dataset) { dataset.refreshMode = mode; });

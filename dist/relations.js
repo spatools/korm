@@ -1,6 +1,4 @@
-/// <reference path="../_definitions.d.ts" />
 define(["require", "exports", "knockout", "underscore", "./query"], function (require, exports, ko, _, _query) {
-    //#region Common Methods
     function create(localSet, foreignSet, relation, entity) {
         switch (relation.type) {
             case 0:
@@ -12,7 +10,6 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
         }
     }
     exports.create = create;
-    /** Create an observable relation to many entities */
     function collection(localSet, foreignSet, relation, parent) {
         var self = {
             propertyName: relation.propertyName,
@@ -29,7 +26,6 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
     }
     exports.collection = collection;
     var collectionViewFunctions = {
-        /** Refresh foreign entities from the server */
         refresh: function (mode) {
             var self = this;
             if (self.ensureRemote) {
@@ -43,13 +39,11 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
                 });
             }
         },
-        /** Add entity to foreign entities and set it good value in foreign key, if buffer is false, entity will be instantly post on the server */
         add: function (entity) {
             entity[this.foreignId](ko.unwrap(this.parent[this.localId]));
             return this.set.add(entity);
         }
     };
-    /** Create an observable relation to one item */
     function foreign(localSet, foreignSet, relation, parent) {
         var self = {
             propertyName: relation.propertyName,
@@ -67,7 +61,6 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
     }
     exports.foreign = foreign;
     var foreignViewFunctions = {
-        /** Refresh the foreign entity from the server */
         refresh: function (mode) {
             var self = this;
             if (self.ensureRemote) {
@@ -77,17 +70,14 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
                 return self.view.refresh(mode);
             }
         },
-        /** Synchronize foreign with local store */
         sync: function () {
             return this.view.sync();
         },
-        /** Update entity into dataSet, if buffer is false, changes will be instantly committed to the server */
         update: function () {
             var entity = this();
             if (entity)
                 this.view.update(entity);
         },
-        /** Change actual related entity with new one and delete if specified */
         change: function (newEntity, deleteOld) {
             if (deleteOld === void 0) { deleteOld = false; }
             var self = this, entity = this(), op = this.foreignSet.isAttached(newEntity) ? newEntity : this.foreignSet.add(newEntity);
@@ -99,13 +89,11 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
             })
                 .then(function () { return newEntity; });
         },
-        /** Save changes of foreign entity to the server */
         save: function () {
             var entity = this();
             return Promise.resolve(entity && this.view.saveEntity(entity));
         }
     };
-    /** Create an observable relation to many entities */
     function remote(localSet, foreignSet, relation, parent) {
         var self = {
             propertyName: relation.propertyName,
@@ -120,7 +108,6 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
     }
     exports.remote = remote;
     exports.remoteViewFunctions = {
-        /** Refresh foreign entities from the server */
         refresh: function (mode) {
             var self = this;
             if (!mode)
@@ -133,18 +120,11 @@ define(["require", "exports", "knockout", "underscore", "./query"], function (re
                 return result;
             });
         },
-        /** Add entity to foreign entities and set it good value in foreign key, if buffer is false, entity will be instantly post on the server */
         add: function (entity) {
-            return Promise.resolve(entity); // TODO !
+            return Promise.resolve(entity);
         },
-        /** Update entity on relation, if buffer is false, entity will be instantly put on the server */
         update: function (entity) {
-            return Promise.resolve(entity); // TODO !
-        },
-        /** Remove entity from relation, if buffer is false, entity will be instantly delete on the server */
-        remove: function (entity) {
-            return Promise.resolve(entity); // TODO !
+            return Promise.resolve(entity);
         }
     };
 });
-//#endregion

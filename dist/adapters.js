@@ -1,4 +1,3 @@
-/// <reference path="../_definitions.d.ts" />
 define(["require", "exports", "promizr", "./adapters/odata"], function (require, exports, promizr, ODataAdapter) {
     var adapters = {
         odata: ODataAdapter

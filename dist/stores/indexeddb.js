@@ -1,4 +1,3 @@
-/// <reference path="../../_definitions.d.ts" />
 define(["require", "exports", "underscore", "promizr", "../mapping", "../query"], function (require, exports, _, promizr, mapping, _query) {
     var cachePrefix = "__KORM_DATA__", win = window, indexedDB = win.indexedDB || win.mozIndexedDB || win.webkitIndexedDB || win.msIndexedDB || win.shimIndexedDB, IDBTransaction = win.IDBTransaction || win.webkitIDBTransaction || win.msIDBTransaction || (win.shimIndexedDB && win.shimIndexedDB.modules.IDBTransaction), IDBKeyRange = win.IDBKeyRange || win.webkitIDBKeyRange || win.msIDBKeyRange || (win.shimIndexedDB && win.shimIndexedDB.modules.IDBKeyRange);
     var IndexedDBStore = (function () {
@@ -9,7 +8,6 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
             this.db = null;
             this.context = context;
         }
-        //#region Public Methods
         IndexedDBStore.prototype.reset = function () {
             var _this = this;
             if (this.db)
@@ -97,13 +95,10 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
                 });
             });
         };
-        //#endregion
-        //#region Database Methods
         IndexedDBStore.prototype.createUpgradeNeeded = function (reject) {
             var _this = this;
             return function (e) {
                 var _db = e.target.result;
-                // A versionchange transaction is started automatically.
                 e.target.transaction.onerror = reject;
                 _.each(_this.context.getSets(), function (dataset) {
                     var tableName = _this.prefix + dataset.setName;
@@ -158,12 +153,9 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
                 request.onerror = reject;
             });
         };
-        /** Ensure correct database is opened */
         IndexedDBStore.prototype.ensureDatabase = function () {
             return Promise.resolve(this.db || this.checkDatabaseConnection());
         };
-        //#endregion
-        //#region Private Methods
         IndexedDBStore.prototype.initIndexes = function () {
             var _this = this;
             if (this.indexes) {
@@ -210,9 +202,7 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
         };
         IndexedDBStore.prototype.createCursor = function (setName, store, query) {
             var ids = this.indexes[setName] || [], op = _query.operator, key = this.getKey(setName), idx, range;
-            // Add primary key in ids to filter
             ids.push(key);
-            // If no query or no filter
             if (query && query.filters.size() > 0) {
                 var operators = [op.equal, op.greaterThan, op.greaterThanOrEqual, op.lessThan, op.lessThanOrEqual], filters = query.filters.filter(function (f) {
                     return !_.isString(f) &&
@@ -222,7 +212,6 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
                 if (filters.length > 0) {
                     if (filters.length === 1) {
                         var filter = filters[0], operator = filter.operator();
-                        // If it's the primary key, don't query index
                         if (filter.field() !== key) {
                             idx = filter.field();
                         }
@@ -230,13 +219,12 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
                             range = win.IDBKeyRange.only(filter.value());
                         }
                         else {
-                            var method = operator.indexOf("g") === 0 ? "upperBound" : "lowerBound", open = operator.indexOf("t") !== -1; // gt / lt
+                            var method = operator.indexOf("g") === 0 ? "upperBound" : "lowerBound", open = operator.indexOf("t") !== -1;
                             range = win.IDBKeyRange[method](filter.value(), open);
                         }
                     }
                     else if (filters.length === 2 && filters[0].field() === filters[1].field()) {
-                        var lowerFilter = filters[0].operator().indexOf("g") === 0 ? filters[0] : filters[1], upperFilter = lowerFilter === filters[0] ? filters[1] : filters[0], lower = lowerFilter.value(), upper = upperFilter.value(), lowerOpen = lowerFilter.operator().indexOf("t") !== -1, upperOpen = upperFilter.operator().indexOf("t") !== -1; // gt / lt
-                        // If it's the primary key, don't query index
+                        var lowerFilter = filters[0].operator().indexOf("g") === 0 ? filters[0] : filters[1], upperFilter = lowerFilter === filters[0] ? filters[1] : filters[0], lower = lowerFilter.value(), upper = upperFilter.value(), lowerOpen = lowerFilter.operator().indexOf("t") !== -1, upperOpen = upperFilter.operator().indexOf("t") !== -1;
                         if (filters[0].field() !== key) {
                             idx = filters[0].field();
                         }
@@ -261,7 +249,6 @@ define(["require", "exports", "underscore", "promizr", "../mapping", "../query"]
                 });
             });
         };
-        /* return set key or item key if specified */
         IndexedDBStore.prototype.getKey = function (setName, item) {
             var dataset = this.context.getSet(setName);
             return item ? dataset.getKey(item) : dataset.key;

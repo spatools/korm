@@ -1,9 +1,7 @@
-/// <reference path="../_definitions.d.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils", "./guid"], function (require, exports, ko, _, moment, utils, guid) {
     exports.operator = {
@@ -61,8 +59,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             this.operator = utils.createObservable(operator);
             this.value = utils.createObservable(value);
         }
-        //#region Public Methods
-        /** Creates a String acceptable for odata Query String $filter */
         Filter.prototype.toQueryString = function () {
             var field = this.field(), operator = this.operator(), value = this.value();
             if (!field) {
@@ -73,7 +69,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             }
             return utils.format("{0} {1} {2}", field, operator, this.formatValue(value));
         };
-        /** Return a function to filter entities using underscore */
         Filter.prototype.toUnderscoreQuery = function () {
             var self = this, field = this.field(), _operator = this.operator(), value = this.value();
             if (_.isUndefined(value) || _.isNull(value))
@@ -104,8 +99,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
                 }
             };
         };
-        //#endregion
-        //#region Private Methods
         Filter.prototype.getValueType = function (value) {
             value = _.isUndefined(value) ? this.value() : value;
             if (_.isUndefined(value) || _.isNull(value)) {
@@ -131,7 +124,7 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
                 return value;
             }
             if (type === "null") {
-                return !!this.operator() ? type : ""; // if no operator the field is a bool himself
+                return !!this.operator() ? type : "";
             }
             return utils.format("{0}'{1}'", type.replace("string", ""), value);
         };
@@ -218,11 +211,9 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             this.field = utils.createObservable(field);
             this.ascending = utils.createObservable(ascending, true);
         }
-        /** Creates a String acceptable for odata Query String $orderby */
         Ordering.prototype.toQueryString = function () {
             return utils.format("{0} {1}", this.field(), this.ascending() ? "asc" : "desc");
         };
-        /** Create a sorting function to sort entities locally */
         Ordering.prototype.toSortFunction = function () {
             var field = this.field(), asc = this.ascending();
             return function (item1, item2) {
@@ -265,48 +256,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             return this.orderby(field, ascending);
         };
         ODataQuery.prototype.where = function () {
-            /// <signature>
-            ///     <summary>Add a simple filter to the query, field must be of Boolean Type</summary>
-            ///     <param name="field" type="String">Name of the field to filter</param>
-            ///     <returns type="spa.odataQuery">Return this for chaining</returns>
-            /// </signature>
-            /// <signature>
-            ///     <summary>Add a simple filter to the query, field must be of Boolean Type</summary>
-            ///     <param name="function" type="String">Function to apply to field</param>
-            ///     <param name="field" type="String">Name of the field to filter</param>
-            ///     <returns type="spa.odataQuery">Return this for chaining</returns>
-            /// </signature>
-            /// <signature>
-            ///     <summary>Add a simple filter to the query</summary>
-            ///     <param name="field" type="String">Name of the field to filter</param>
-            ///     <param name="operator" type="String">Operator to apply in filter</param>
-            ///     <param name="value" type="mixed">Value to filter with</param>
-            ///     <returns type="spa.odataQuery">Return this for chaining</returns>
-            /// </signature>
-            /// <signature>
-            ///     <summary>Add a simple filter to the query, field must be of Boolean Type</summary>
-            ///     <param name="function" type="String">Function to apply to field</param>
-            ///     <param name="field" type="String">Name of the field to filter</param>
-            ///     <param name="args" type="Array" elementType="String">Arguments for function</param>
-            ///     <returns type="spa.odataQuery">Return this for chaining</returns>
-            /// </signature>
-            /// <signature>
-            ///     <summary>Add a filter with a method to the query</summary>
-            ///     <param name="function" type="String">Function to apply to field</param>
-            ///     <param name="field" type="String">Name of the field to filter</param>
-            ///     <param name="operator" type="String">Operator to apply in filter</param>
-            ///     <param name="value" type="mixed">Value to filter with</param>
-            ///     <returns type="spa.odataQuery">Return this for chaining</returns>
-            /// </signature>
-            /// <signature>
-            ///     <summary>Add a filter with a function and arguments to the query</summary>
-            ///     <param name="function" type="String">Function to apply to field</param>
-            ///     <param name="field" type="String">Name of the field to filter</param>
-            ///     <param name="args" type="Array" elementType="String">Arguments for function</param>
-            ///     <param name="operator" type="String">Operator to apply in filter</param>
-            ///     <param name="value" type="mixed">Value to filter with</param>
-            ///     <returns type="spa.odataQuery">Return this for chaining</returns>
-            /// </signature>
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i - 0] = arguments[_i];
@@ -335,7 +284,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
                 this.filters.push(filter);
             return this;
         };
-        /** Order by specified field */
         ODataQuery.prototype.orderby = function (field, ascending) {
             var order = this.ordersby.find(function (order) { return order.field() === ko.unwrap(field); });
             if (order) {
@@ -370,7 +318,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             this.filters.push(exports.operator.or);
             return this;
         };
-        /** Creates an OData Query string (includes $filter, $skip, $top, $orderby) */
         ODataQuery.prototype.toQueryString = function () {
             var qstring = [], filters = [], orders, lastIsFilter = false, showTotal = this.total(), pageNum = this.pageNum(), pageSize = this.pageSize(), selects = this.selects(), expands = this.expands();
             _.each(this.filters(), function (filter) {
@@ -410,7 +357,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             }
             return qstring.join("&");
         };
-        /** Returns a function for local filtering */
         ODataQuery.prototype.toLocalFilter = function () {
             var filters = [], lastIsFilter = false;
             if (this.includeDeleted() !== true) {
@@ -446,7 +392,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             }
             return null;
         };
-        /** Returns a function for local sorting */
         ODataQuery.prototype.toLocalSorting = function () {
             var orders = this.ordersby.map(function (order) { return order.toSortFunction(); });
             if (orders.length) {
@@ -461,17 +406,14 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             }
             return null;
         };
-        /** Filter specified array */
         ODataQuery.prototype.applyFilters = function (array) {
             var filter = this.toLocalFilter();
             return filter ? _.filter(array, filter) : array;
         };
-        /** Sort specified array */
         ODataQuery.prototype.applySorting = function (array) {
             var sorter = this.toLocalSorting();
             return sorter ? array.sort(sorter) : array;
         };
-        /** Apply paging to specified array */
         ODataQuery.prototype.applyPaging = function (array, correctPageNum) {
             if (correctPageNum === void 0) { correctPageNum = false; }
             var pageSize = this.pageSize();
@@ -495,7 +437,6 @@ define(["require", "exports", "knockout", "underscore", "moment", "koutils/utils
             }
             return array;
         };
-        /** Apply this query to specified array */
         ODataQuery.prototype.apply = function (array, correctPageNum) {
             if (correctPageNum === void 0) { correctPageNum = false; }
             array = this.applyFilters(array);

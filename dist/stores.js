@@ -1,4 +1,3 @@
-/// <reference path="../_definitions.d.ts" />
 define(["require", "exports", "promizr", "./stores/memory"], function (require, exports, promizr, MemoryStore) {
     var stores = {
         "memory": MemoryStore

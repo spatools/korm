@@ -1,11 +1,9 @@
-/// <reference path="../../_definitions.d.ts" />
 define(["require", "exports", "underscore", "promizr", "../mapping"], function (require, exports, _, promizr, mapping) {
     var MemoryStore = (function () {
         function MemoryStore(context) {
             this.memory = {};
             this.context = context;
         }
-        //#region Public Methods
         MemoryStore.prototype.reset = function () {
             var _this = this;
             return promizr.timeout().then(function () {
@@ -80,9 +78,6 @@ define(["require", "exports", "underscore", "promizr", "../mapping"], function (
                 _.each(keys, function (key) { delete table[key]; });
             });
         };
-        //#endregion
-        //#region Private Methods
-        /* return set key or item key if specified */
         MemoryStore.prototype.getKey = function (setName, item) {
             var dataset = this.context.getSet(setName);
             return item ? dataset.getKey(item) : dataset.key;

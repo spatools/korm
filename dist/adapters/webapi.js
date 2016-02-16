@@ -1,5 +1,3 @@
-/// <reference path="../../_definitions.d.ts" />
-/// <reference path="../../typings/jquery/jquery.d.ts" />
 define(["require", "exports", "jquery", "./prefilter", "../query"], function (require, exports, $, prefilter, query) {
     var WebApiAdapter = (function () {
         function WebApiAdapter() {
@@ -38,31 +36,26 @@ define(["require", "exports", "jquery", "./prefilter", "../query"], function (re
                 options.data = JSON.stringify(data);
             return Promise.resolve($.ajax(options));
         };
-        /** Get entity collection filtered by query (if provided) (GET) */
         WebApiAdapter.prototype.getAll = function (controller, query) {
             var url = this.options.baseUrl + controller;
             if (query)
                 url = url + "?" + query.toQueryString();
             return this.ajax(url).then(this.fixResult);
         };
-        /** Get a single entity (GET) */
         WebApiAdapter.prototype.getOne = function (controller, id, query) {
             var url = this.options.baseUrl + controller + "/" + encodeURIComponent(id);
             if (query)
                 url = url + "?" + query.toQueryString();
             return this.ajax(url);
         };
-        /** Create an entity (POST) */
         WebApiAdapter.prototype.post = function (controller, data) {
             var url = this.options.baseUrl + controller;
             return this.ajax(url, "POST", data);
         };
-        /** Updates an entity (PUT) */
         WebApiAdapter.prototype.put = function (controller, id, data) {
             var url = this.options.baseUrl + controller + "/" + encodeURIComponent(id);
             return this.ajax(url, "PUT", data);
         };
-        /** Deletes an entity (DELETE) */
         WebApiAdapter.prototype.remove = function (controller, id) {
             var url = this.options.baseUrl + controller + "/" + encodeURIComponent(id);
             return this.ajax(url, "DELETE");

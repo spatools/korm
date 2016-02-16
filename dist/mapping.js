@@ -1,13 +1,10 @@
 define(["require", "exports", "knockout", "knockout.mapping", "underscore", "promise", "./relations", "./query", "koutils/changetracker", "knockout.mapping"], function (require, exports, ko, koMapping, _, Promise, relations, query, changeTracker) {
-    //#region Enumerations / Defaults
-    /** Enumeration representing relations types */
     (function (relationTypes) {
         relationTypes[relationTypes["many"] = 0] = "many";
         relationTypes[relationTypes["one"] = 1] = "one";
         relationTypes[relationTypes["remote"] = 2] = "remote";
     })(exports.relationTypes || (exports.relationTypes = {}));
     var relationTypes = exports.relationTypes;
-    /** Enumeration for differents entity states */
     (function (entityStates) {
         entityStates[entityStates["unchanged"] = 0] = "unchanged";
         entityStates[entityStates["added"] = 1] = "added";
@@ -15,20 +12,15 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         entityStates[entityStates["removed"] = 3] = "removed";
     })(exports.entityStates || (exports.entityStates = {}));
     var entityStates = exports.entityStates;
-    /** Default types properties (internal usage) */
     exports.typeProperties = [
         "odata.type",
         "$type",
         "_type"
     ];
-    /** Default mapping rules (internal usage) */
     exports.defaultRules = {
         copy: [],
         ignore: ["_lastData", "EntityState", "IsSubmitting", "HasChanges", "ChangeTracker", "IsRemoved", "isValid", "errors", "hasChanges", "subscription", "__ko_mapping__"]
     };
-    //#endregion
-    //#region Models
-    /** Class representing a relation for an entity set */
     var Relation = (function () {
         function Relation(propertyName, type, controllerName, foreignKey, ensureRemote) {
             this.propertyName = propertyName;
@@ -52,7 +44,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return Relation;
     })();
     exports.Relation = Relation;
-    /** Class representing a mapping configuration for serialization / deserialization scenarios */
     var Configuration = (function () {
         function Configuration(type, model, relations, rules, actions, baseType) {
             if (_.isString(type)) {
@@ -75,26 +66,21 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return Configuration;
     })();
     exports.Configuration = Configuration;
-    /** Abstract mapping configurations for dataContext */
     var Configurations = (function () {
         function Configurations() {
             this.configurations = {};
         }
-        /** Get configuration by type */
         Configurations.prototype.getConfiguration = function (type) {
             return this.configurations[type];
         };
-        /** Add a mapping configuration */
         Configurations.prototype.addConfiguration = function (configuration) {
             this.configurations[configuration.type] = ensureConfiguration(this, configuration);
             return this;
         };
-        /** Add an array of mapping configurations */
         Configurations.prototype.addConfigurations = function (configs) {
             _.each(configs, this.addConfiguration, this);
             return this;
         };
-        /** Remove a configuration by type */
         Configurations.prototype.removeConfiguration = function (type) {
             if (this.configurations[type])
                 delete this.configurations[type];
@@ -103,8 +89,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return Configurations;
     })();
     exports.Configurations = Configurations;
-    //#endregion
-    //#region Private Methods
     function getEntityByName(name) {
         var namespaces = name.split("."), ctor = namespaces.pop(), context = window;
         for (var i = 0; i < namespaces.length; i++)
@@ -242,14 +226,11 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         });
         return Promise.all(promises).then(function () { return; });
     }
-    //#endregion
-    //#region Public Methods
     function getMappingConfiguration(entity, dataSet) {
         var type = getEntityType(entity) || dataSet.defaultType;
         return (type && dataSet.context.getMappingConfiguration(type)) || new Configuration(type);
     }
     exports.getMappingConfiguration = getMappingConfiguration;
-    /** Add mapping properties to an entity */
     function addMappingProperties(model, dataSet, config, initialState, data) {
         if (initialState === void 0) { initialState = entityStates.unchanged; }
         if (data === void 0) { data = null; }
@@ -286,7 +267,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return model;
     }
     exports.addMappingProperties = addMappingProperties;
-    /** Refresh all entity relations */
     function refreshRelations(entity, dataSet) {
         var config = getMappingConfiguration(entity, dataSet), promises, prop;
         if (config.relations) {
@@ -298,7 +278,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return Promise.all(promises).then(function () { return entity; });
     }
     exports.refreshRelations = refreshRelations;
-    /** Duplicate specified entity and return copy */
     function duplicateEntity(entity, dataSet) {
         var config = getMappingConfiguration(entity, dataSet), mappingRules = ensureRules(config, entity);
         var copy = koMapping.toJS(entity, mappingRules);
@@ -306,7 +285,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return koMapping.fromJS(copy, mappingRules);
     }
     exports.duplicateEntity = duplicateEntity;
-    /** Update specified entity with given data */
     function updateEntity(entity, data, commit, expand, store, dataSet) {
         if (!data) {
             if (!commit) {
@@ -327,7 +305,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return Promise.resolve(entity);
     }
     exports.updateEntity = updateEntity;
-    /** Update specified set of entities with given data array */
     function updateEntities(entities, datas, commit, expand, store, dataSet) {
         if (datas.length === 0) {
             if (!commit) {
@@ -355,7 +332,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return Promise.resolve(entities);
     }
     exports.updateEntities = updateEntities;
-    /** Reset specified entity with last remote data */
     function resetEntity(entity, dataSet) {
         var config = getMappingConfiguration(entity, dataSet), mappingRules = ensureRules(config, entity);
         koMapping.fromJS(entity._lastData, mappingRules, entity);
@@ -364,7 +340,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         return entity;
     }
     exports.resetEntity = resetEntity;
-    /** Dispose each computeds properties in entities */
     function disposeEntity(entity, dataSet) {
         var config = getMappingConfiguration(entity, dataSet), relationProperty;
         if (entity.subscription) {
@@ -394,8 +369,6 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
         delete entity.ChangeTracker;
     }
     exports.disposeEntity = disposeEntity;
-    //#endregion
-    //#region Mapping Methods
     function mapEntitiesFromJS(datas, initialState, expand, store, dataSet) {
         if (!datas || datas.length === 0) {
             return Promise.resolve(datas);
@@ -460,4 +433,3 @@ define(["require", "exports", "knockout", "knockout.mapping", "underscore", "pro
     }
     exports.mapEntityToJSON = mapEntityToJSON;
 });
-//#endregion

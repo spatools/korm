@@ -1,30 +1,24 @@
-/// <reference path="../../_definitions.d.ts" />
-/// <reference path="../../typings/jquery/jquery.d.ts" />
 define(["require", "exports", "jquery"], function (require, exports, $) {
     var isInitialized = false;
     function initialize() {
         if (!isInitialized) {
             $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
-                // retry not set or less than 2 : retry not requested // no timeout was setup
                 if (!originalOptions.retryCount || originalOptions.retryCount < 2 || originalOptions.retryDelay === 0) {
                     return;
                 }
                 if (originalOptions.retries) {
-                    originalOptions.retries++; // increment retry count each time
+                    originalOptions.retries++;
                 }
                 else {
-                    originalOptions.retries = 1; // init the retry count if not set
-                    originalOptions._error = originalOptions.error; // copy original error callback on first time
+                    originalOptions.retries = 1;
+                    originalOptions._error = originalOptions.error;
                 }
-                // overwrite error handler for current request
                 options.error = function (_jqXHR, _textStatus, _errorThrown) {
-                    // retry max was exhausted or it is not a timeout error
                     if (originalOptions.retries >= originalOptions.retryCount) {
                         if (originalOptions._error)
-                            originalOptions._error(_jqXHR, _textStatus, _errorThrown); // call original error handler if any
+                            originalOptions._error(_jqXHR, _textStatus, _errorThrown);
                         return;
                     }
-                    // Call AJAX again with original options
                     setTimeout(function () { $.ajax(originalOptions); }, originalOptions.retryDelay || 0);
                 };
             });

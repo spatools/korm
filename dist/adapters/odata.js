@@ -1,5 +1,3 @@
-/// <reference path="../../_definitions.d.ts" />
-/// <reference path="../../typings/jquery/jquery.d.ts" />
 define(["require", "exports", "underscore", "jquery", "koutils/utils", "./prefilter", "../guid", "../query"], function (require, exports, _, $, utils, prefilter, guid, query) {
     var urls = {
         entitySet: "{controller}",
@@ -78,31 +76,26 @@ define(["require", "exports", "underscore", "jquery", "koutils/utils", "./prefil
                 options.data = JSON.stringify(data);
             return Promise.resolve($.ajax(options));
         };
-        /** Get entity collection filtered by query (if provided) (GET) */
         ODataAdapter.prototype.getAll = function (controller, query) {
             var url = this.generateUrl(urls.entitySet, controller);
             if (query)
                 url = url + "?" + query.toQueryString();
             return this.ajax(url).then(this.fixResult);
         };
-        /** Get a single entity (GET) */
         ODataAdapter.prototype.getOne = function (controller, id, query) {
             var url = this.generateUrl(urls.entity, controller, id);
             if (query)
                 url = url + "?" + query.toQueryString();
             return this.ajax(url);
         };
-        /** Create an entity (POST) */
         ODataAdapter.prototype.post = function (controller, data) {
             var url = this.generateUrl(urls.entitySet, controller);
             return this.ajax(url, "POST", data);
         };
-        /** Updates an entity (PUT) */
         ODataAdapter.prototype.put = function (controller, id, data) {
             var url = this.generateUrl(urls.entity, controller, id);
             return this.ajax(url, "PUT", data);
         };
-        /** Deletes an entity (DELETE) */
         ODataAdapter.prototype.remove = function (controller, id) {
             var url = this.generateUrl(urls.entity, controller, id);
             return this.ajax(url, "DELETE");

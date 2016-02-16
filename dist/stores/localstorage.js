@@ -1,11 +1,9 @@
-/// <reference path="../../_definitions.d.ts" />
 define(["require", "exports", "underscore", "promizr", "../mapping"], function (require, exports, _, promizr, mapping) {
     var cachePrefix = "__SPA_DATA__";
     var LocalStorageStore = (function () {
         function LocalStorageStore(context) {
             this.context = context;
         }
-        //#region Public Methods
         LocalStorageStore.prototype.reset = function () {
             return promizr.eachSeries(this.context.getSets(), function (dataset) {
                 return promizr.timeout().then(function () {
@@ -87,8 +85,6 @@ define(["require", "exports", "underscore", "promizr", "../mapping"], function (
                 return _this.setStoreTable(setName, table);
             });
         };
-        //#endregion
-        //#region Private Methods
         LocalStorageStore.prototype.getStoreTable = function (setName) {
             return promizr.timeout().then(function () {
                 return JSON.parse(localStorage.getItem(cachePrefix + setName)) || {};
@@ -99,7 +95,6 @@ define(["require", "exports", "underscore", "promizr", "../mapping"], function (
                 localStorage.setItem(cachePrefix + setName, JSON.stringify(setValue));
             });
         };
-        /* return set key or item key if specified */
         LocalStorageStore.prototype.getKey = function (setName, item) {
             var dataset = this.context.getSet(setName);
             return item ? dataset.getKey(item) : dataset.key;
