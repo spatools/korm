@@ -84,7 +84,7 @@ class ODataAdapter implements adapters.IAdapter {
         };
     }
     private ajax(url: string, type: string = "GET", data?: any): Promise<any> {
-        var options: JQueryAjaxSettings = {
+        var options: prefilter.RetryAjaxOptions = {
             url: url,
             type: type,
             contentType: "application/json",

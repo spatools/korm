@@ -23,6 +23,9 @@ test/helpers/*.js
 test/helpers/*.js.map
 nuget/*.nupkg
 .temp/
+.tscache/
+*.tmp.txt
+.baseDir.*
 
 # Build results
 

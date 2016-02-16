@@ -250,9 +250,9 @@ export var remoteViewFunctions: RelationRemoteViewFunctions<any, any, any, any> 
         return Promise.resolve(entity); // TODO !
     },
     /** Remove entity from relation, if buffer is false, entity will be instantly delete on the server */
-    remove: function (entity: any): Promise<any> {
-        return Promise.resolve(entity); // TODO !
-    }
+    // remove: function (entity: any): Promise<any> {
+    //     return Promise.resolve(entity); // TODO !
+    // }
 };
 
 //#endregion

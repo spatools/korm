@@ -4,6 +4,11 @@
 import $ = require("jquery");
 var isInitialized: boolean = false;
 
+export interface RetryAjaxOptions extends JQueryAjaxSettings {
+    retryCount?: number;
+    retryDelay?: number;
+}
+
 export function initialize(): void {
     if (!isInitialized) {
         $.ajaxPrefilter((options, originalOptions: any, jqXHR) => {
