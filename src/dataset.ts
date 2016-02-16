@@ -744,38 +744,46 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
     },
     /** Save changes of an entity to the server */
     saveEntity: function (entity: any): Promise<any> {
-        var self = <DataSet<any, any>>this,
-            state = entity.EntityState(),
-            states = mapping.entityStates;
+        const self = this as DataSet<any, any>;
 
-        switch (state) {
-            case states.added:
-                return self._remoteCreate(entity);
-            case states.modified:
-                return self._remoteUpdate(entity);
-            case states.removed:
-                return self._remoteRemove(entity);
-        }
+        return waitTasks().then(() => {
+            const
+                state = entity.EntityState(),
+                states = mapping.entityStates;
 
-        return Promise.resolve(entity);
+            switch (state) {
+                case states.added:
+                    return self._remoteCreate(entity);
+                case states.modified:
+                    return self._remoteUpdate(entity);
+                case states.removed:
+                    return self._remoteRemove(entity);
+            }
+
+            return Promise.resolve(entity);
+        });
     },
     /** Commits all Pending Operations (PUT, DELETE, POST) */
-    saveChanges: function (entities?: any[]): Promise<any> {
-        var self = <DataSet<any, any>>this,
-            changes = self.getChanges(entities);
+    saveChanges: function (entities?: any[]): Promise<void> {
+        const self = this as DataSet<any, any>;
 
-        if (self.adapter.batch) {
-            return self._remoteBatch(changes);
-        }
-        else {
-            var promises = _.union(
-                _.map(changes.added, e => self._remoteCreate(e)),
-                _.map(changes.modified, e => self._remoteUpdate(e)),
-                _.map(changes.removed, e => self._remoteRemove(e))
-            );
+        return waitTasks().then(() => {
+            const
+                changes = self.getChanges(entities);
 
-            return Promise.all(promises);
-        }
+            if (self.adapter.batch) {
+                return self._remoteBatch(changes);
+            }
+            else {
+                var promises = _.union(
+                    _.map(changes.added, e => self._remoteCreate(e)),
+                    _.map(changes.modified, e => self._remoteUpdate(e)),
+                    _.map(changes.removed, e => self._remoteRemove(e))
+                );
+
+                return Promise.all(promises).then(() => { return; });
+            }
+        });
     },
 
     /** Submits an Entity to the Server (internal use) */
@@ -885,5 +893,16 @@ var dataSetFunctions: DataSetFunctions<any, any> = {
 };
 
 ko_.addTo(dataSetFunctions, "object");
+
+function waitTasks() {
+    return new Promise((resolve) => {
+        if ((<any>ko).tasks) {
+            (<any>ko).tasks.schedule(resolve);
+        }
+        else {
+            resolve();
+        }
+    });
+}
 
 //#endregion
