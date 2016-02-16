@@ -1,6 +1,6 @@
 {
   "name": "korm",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "authors": [
     "SPA Tools"
   ],
@@ -34,7 +34,7 @@
     "komoment": "^0.1.1",
     "jquery": ">=1.9.1",
     "knockout.mapping": "SteveSanderson/knockout.mapping",
-    "promizr": "^0.1.3"
+    "promizr": "^0.2.1"
   },
   "devDependencies": {
     "mocha": "~1.17.1",

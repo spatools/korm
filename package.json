@@ -1,6 +1,6 @@
 {
   "name": "korm",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Knockout ORM framework with REST service adapter and offline storage",
   "main": "dist/korm.js",
   "scripts": {
@@ -34,12 +34,12 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-mocha": "^0.4.13",
     "grunt-nuget": "^0.1.4",
+    "grunt-ts": "^5.3.2",
     "grunt-tsdamdconcat": "^0.1.1",
     "grunt-tslint": "^2.5.0",
-    "grunt-typescript": "^0.7.0",
     "jit-grunt": "^0.9.1",
     "time-grunt": "^1.2.1",
-    "typescript": "~1.5.3"
+    "typescript": "^1.7.5"
   },
   "author": "SPA Tools",
   "license": "MIT"

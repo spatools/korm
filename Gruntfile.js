@@ -23,7 +23,7 @@ module.exports = function (grunt) {
             test: 'test'
         },
 
-        typescript: {
+        ts: {
             options: {
                 target: "es3",
                 module: "amd",
@@ -42,7 +42,7 @@ module.exports = function (grunt) {
             test: {
                 src: "<%= paths.test %>/**/*.ts"
             },
-            declaration: {
+            decla: {
                 src: "<%= paths.src %>/**/*.ts",
                 dest: "<%= paths.temp %>/",
                 options: {
@@ -60,7 +60,7 @@ module.exports = function (grunt) {
         },
 
         concat: {
-            declaration: {
+            decla: {
                 src: [
                     "<%= paths.src %>/base.d.ts",
                     "<%= paths.temp %>/temp.d.ts"
@@ -75,7 +75,7 @@ module.exports = function (grunt) {
                 basePath: "<%= paths.temp %>",
                 prefixPath: "korm"
             },
-            declaration: {
+            decla: {
                 src: "<%= paths.temp %>/*.d.ts",
                 dest: "<%= paths.temp %>/temp.d.ts"
             }
@@ -176,10 +176,10 @@ module.exports = function (grunt) {
         grunt.file.write("dist/korm.d.ts", content);
     });
 
-    grunt.registerTask("declaration", ["typescript:declaration", "tsdamdconcat:declaration", "concat:declaration", "clean:temp", "fixdecla"]);
-    grunt.registerTask("build", ["tslint:dev", "typescript:dist", "jshint:dist", "declaration"]);
-    grunt.registerTask("dev", ["tslint:dev", "typescript:dev", "jshint:dev"]);
-    grunt.registerTask("test", ["tslint:test", "dev", "typescript:test", "jshint:test", "mocha:test", "clean"]);
+    grunt.registerTask("declaration", ["ts:decla", "tsdamdconcat:decla", "concat:decla", "clean:temp", "fixdecla"]);
+    grunt.registerTask("build", ["tslint:dev", "ts:dist", "jshint:dist", "declaration"]);
+    grunt.registerTask("dev", ["tslint:dev", "ts:dev", "jshint:dev"]);
+    grunt.registerTask("test", ["tslint:test", "dev", "ts:test", "jshint:test", "mocha:test", "clean"]);
     grunt.registerTask("nuget", ["nugetpack", "nugetpush"]);
 
     grunt.registerTask("default", ["clean", "test", "build"]);
