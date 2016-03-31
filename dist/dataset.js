@@ -29,7 +29,7 @@ define(["require", "exports", "knockout", "underscore", "./mapping", "./dataview
     }
     function _updateDataSet(dataset, result, query) {
         var rmDfd, isArray = _.isArray(result.data);
-        if (isArray && !query || query.pageSize() === 0) {
+        if (isArray && !query || query && query.pageSize() === 0) {
             var current = dataset.toArray();
             if (query && query.filters.size() > 0)
                 current = query.applyFilters(current);

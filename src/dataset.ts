@@ -229,7 +229,7 @@ function _initAttachedEntity(dataset: DataSet<any, any>, entity: any): any {
 
 function _updateDataSet(dataset: DataSet<any, any>, result: adapters.IAdapterResult, query: query.ODataQuery): Promise<any[]> {
     var rmDfd, isArray = _.isArray(result.data);
-    if (isArray && !query || query.pageSize() === 0) {
+    if (isArray && !query || query && query.pageSize() === 0) {
         var current = dataset.toArray();
         if (query && query.filters.size() > 0)
             current = query.applyFilters(current);
